@@ -1,3 +1,5 @@
+/* eslint-disable */
+// https://github.com/gcanti/fp-ts/blob/5469a48ff01c1db86b3dd3d1a67ca700e8dd0c08/src/function.ts#L438
 /**
  * Pipes the value of an expression into a pipeline of functions.
  *
@@ -17,309 +19,309 @@
  *
  * @since 2.6.3
  */
-export function flow<A>(a: A): A;
-export function flow<A, B>(a: A, ab: (a: A) => B): B;
-export function flow<A, B, C>(a: A, ab: (a: A) => B, bc: (b: B) => C): C;
+export function flow<A>(a: A): A
+export function flow<A, B>(a: A, ab: (a: A) => B): B
+export function flow<A, B, C>(a: A, ab: (a: A) => B, bc: (b: B) => C): C
 export function flow<A, B, C, D>(
-  a: A,
-  ab: (a: A) => B,
-  bc: (b: B) => C,
-  cd: (c: C) => D,
-): D;
+	a: A,
+	ab: (a: A) => B,
+	bc: (b: B) => C,
+	cd: (c: C) => D,
+): D
 export function flow<A, B, C, D, E>(
-  a: A,
-  ab: (a: A) => B,
-  bc: (b: B) => C,
-  cd: (c: C) => D,
-  de: (d: D) => E,
-): E;
+	a: A,
+	ab: (a: A) => B,
+	bc: (b: B) => C,
+	cd: (c: C) => D,
+	de: (d: D) => E,
+): E
 export function flow<A, B, C, D, E, F>(
-  a: A,
-  ab: (a: A) => B,
-  bc: (b: B) => C,
-  cd: (c: C) => D,
-  de: (d: D) => E,
-  ef: (e: E) => F,
-): F;
+	a: A,
+	ab: (a: A) => B,
+	bc: (b: B) => C,
+	cd: (c: C) => D,
+	de: (d: D) => E,
+	ef: (e: E) => F,
+): F
 export function flow<A, B, C, D, E, F, G>(
-  a: A,
-  ab: (a: A) => B,
-  bc: (b: B) => C,
-  cd: (c: C) => D,
-  de: (d: D) => E,
-  ef: (e: E) => F,
-  fg: (f: F) => G,
-): G;
+	a: A,
+	ab: (a: A) => B,
+	bc: (b: B) => C,
+	cd: (c: C) => D,
+	de: (d: D) => E,
+	ef: (e: E) => F,
+	fg: (f: F) => G,
+): G
 export function flow<A, B, C, D, E, F, G, H>(
-  a: A,
-  ab: (a: A) => B,
-  bc: (b: B) => C,
-  cd: (c: C) => D,
-  de: (d: D) => E,
-  ef: (e: E) => F,
-  fg: (f: F) => G,
-  gh: (g: G) => H,
-): H;
+	a: A,
+	ab: (a: A) => B,
+	bc: (b: B) => C,
+	cd: (c: C) => D,
+	de: (d: D) => E,
+	ef: (e: E) => F,
+	fg: (f: F) => G,
+	gh: (g: G) => H,
+): H
 export function flow<A, B, C, D, E, F, G, H, I>(
-  a: A,
-  ab: (a: A) => B,
-  bc: (b: B) => C,
-  cd: (c: C) => D,
-  de: (d: D) => E,
-  ef: (e: E) => F,
-  fg: (f: F) => G,
-  gh: (g: G) => H,
-  hi: (h: H) => I,
-): I;
+	a: A,
+	ab: (a: A) => B,
+	bc: (b: B) => C,
+	cd: (c: C) => D,
+	de: (d: D) => E,
+	ef: (e: E) => F,
+	fg: (f: F) => G,
+	gh: (g: G) => H,
+	hi: (h: H) => I,
+): I
 export function flow<A, B, C, D, E, F, G, H, I, J>(
-  a: A,
-  ab: (a: A) => B,
-  bc: (b: B) => C,
-  cd: (c: C) => D,
-  de: (d: D) => E,
-  ef: (e: E) => F,
-  fg: (f: F) => G,
-  gh: (g: G) => H,
-  hi: (h: H) => I,
-  ij: (i: I) => J,
-): J;
+	a: A,
+	ab: (a: A) => B,
+	bc: (b: B) => C,
+	cd: (c: C) => D,
+	de: (d: D) => E,
+	ef: (e: E) => F,
+	fg: (f: F) => G,
+	gh: (g: G) => H,
+	hi: (h: H) => I,
+	ij: (i: I) => J,
+): J
 export function flow<A, B, C, D, E, F, G, H, I, J, K>(
-  a: A,
-  ab: (a: A) => B,
-  bc: (b: B) => C,
-  cd: (c: C) => D,
-  de: (d: D) => E,
-  ef: (e: E) => F,
-  fg: (f: F) => G,
-  gh: (g: G) => H,
-  hi: (h: H) => I,
-  ij: (i: I) => J,
-  jk: (j: J) => K,
-): K;
+	a: A,
+	ab: (a: A) => B,
+	bc: (b: B) => C,
+	cd: (c: C) => D,
+	de: (d: D) => E,
+	ef: (e: E) => F,
+	fg: (f: F) => G,
+	gh: (g: G) => H,
+	hi: (h: H) => I,
+	ij: (i: I) => J,
+	jk: (j: J) => K,
+): K
 export function flow<A, B, C, D, E, F, G, H, I, J, K, L>(
-  a: A,
-  ab: (a: A) => B,
-  bc: (b: B) => C,
-  cd: (c: C) => D,
-  de: (d: D) => E,
-  ef: (e: E) => F,
-  fg: (f: F) => G,
-  gh: (g: G) => H,
-  hi: (h: H) => I,
-  ij: (i: I) => J,
-  jk: (j: J) => K,
-  kl: (k: K) => L,
-): L;
+	a: A,
+	ab: (a: A) => B,
+	bc: (b: B) => C,
+	cd: (c: C) => D,
+	de: (d: D) => E,
+	ef: (e: E) => F,
+	fg: (f: F) => G,
+	gh: (g: G) => H,
+	hi: (h: H) => I,
+	ij: (i: I) => J,
+	jk: (j: J) => K,
+	kl: (k: K) => L,
+): L
 export function flow<A, B, C, D, E, F, G, H, I, J, K, L, M>(
-  a: A,
-  ab: (a: A) => B,
-  bc: (b: B) => C,
-  cd: (c: C) => D,
-  de: (d: D) => E,
-  ef: (e: E) => F,
-  fg: (f: F) => G,
-  gh: (g: G) => H,
-  hi: (h: H) => I,
-  ij: (i: I) => J,
-  jk: (j: J) => K,
-  kl: (k: K) => L,
-  lm: (l: L) => M,
-): M;
+	a: A,
+	ab: (a: A) => B,
+	bc: (b: B) => C,
+	cd: (c: C) => D,
+	de: (d: D) => E,
+	ef: (e: E) => F,
+	fg: (f: F) => G,
+	gh: (g: G) => H,
+	hi: (h: H) => I,
+	ij: (i: I) => J,
+	jk: (j: J) => K,
+	kl: (k: K) => L,
+	lm: (l: L) => M,
+): M
 export function flow<A, B, C, D, E, F, G, H, I, J, K, L, M, N>(
-  a: A,
-  ab: (a: A) => B,
-  bc: (b: B) => C,
-  cd: (c: C) => D,
-  de: (d: D) => E,
-  ef: (e: E) => F,
-  fg: (f: F) => G,
-  gh: (g: G) => H,
-  hi: (h: H) => I,
-  ij: (i: I) => J,
-  jk: (j: J) => K,
-  kl: (k: K) => L,
-  lm: (l: L) => M,
-  mn: (m: M) => N,
-): N;
+	a: A,
+	ab: (a: A) => B,
+	bc: (b: B) => C,
+	cd: (c: C) => D,
+	de: (d: D) => E,
+	ef: (e: E) => F,
+	fg: (f: F) => G,
+	gh: (g: G) => H,
+	hi: (h: H) => I,
+	ij: (i: I) => J,
+	jk: (j: J) => K,
+	kl: (k: K) => L,
+	lm: (l: L) => M,
+	mn: (m: M) => N,
+): N
 export function flow<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(
-  a: A,
-  ab: (a: A) => B,
-  bc: (b: B) => C,
-  cd: (c: C) => D,
-  de: (d: D) => E,
-  ef: (e: E) => F,
-  fg: (f: F) => G,
-  gh: (g: G) => H,
-  hi: (h: H) => I,
-  ij: (i: I) => J,
-  jk: (j: J) => K,
-  kl: (k: K) => L,
-  lm: (l: L) => M,
-  mn: (m: M) => N,
-  no: (n: N) => O,
-): O;
+	a: A,
+	ab: (a: A) => B,
+	bc: (b: B) => C,
+	cd: (c: C) => D,
+	de: (d: D) => E,
+	ef: (e: E) => F,
+	fg: (f: F) => G,
+	gh: (g: G) => H,
+	hi: (h: H) => I,
+	ij: (i: I) => J,
+	jk: (j: J) => K,
+	kl: (k: K) => L,
+	lm: (l: L) => M,
+	mn: (m: M) => N,
+	no: (n: N) => O,
+): O
 
 export function flow<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>(
-  a: A,
-  ab: (a: A) => B,
-  bc: (b: B) => C,
-  cd: (c: C) => D,
-  de: (d: D) => E,
-  ef: (e: E) => F,
-  fg: (f: F) => G,
-  gh: (g: G) => H,
-  hi: (h: H) => I,
-  ij: (i: I) => J,
-  jk: (j: J) => K,
-  kl: (k: K) => L,
-  lm: (l: L) => M,
-  mn: (m: M) => N,
-  no: (n: N) => O,
-  op: (o: O) => P,
-): P;
+	a: A,
+	ab: (a: A) => B,
+	bc: (b: B) => C,
+	cd: (c: C) => D,
+	de: (d: D) => E,
+	ef: (e: E) => F,
+	fg: (f: F) => G,
+	gh: (g: G) => H,
+	hi: (h: H) => I,
+	ij: (i: I) => J,
+	jk: (j: J) => K,
+	kl: (k: K) => L,
+	lm: (l: L) => M,
+	mn: (m: M) => N,
+	no: (n: N) => O,
+	op: (o: O) => P,
+): P
 
 export function flow<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q>(
-  a: A,
-  ab: (a: A) => B,
-  bc: (b: B) => C,
-  cd: (c: C) => D,
-  de: (d: D) => E,
-  ef: (e: E) => F,
-  fg: (f: F) => G,
-  gh: (g: G) => H,
-  hi: (h: H) => I,
-  ij: (i: I) => J,
-  jk: (j: J) => K,
-  kl: (k: K) => L,
-  lm: (l: L) => M,
-  mn: (m: M) => N,
-  no: (n: N) => O,
-  op: (o: O) => P,
-  pq: (p: P) => Q,
-): Q;
+	a: A,
+	ab: (a: A) => B,
+	bc: (b: B) => C,
+	cd: (c: C) => D,
+	de: (d: D) => E,
+	ef: (e: E) => F,
+	fg: (f: F) => G,
+	gh: (g: G) => H,
+	hi: (h: H) => I,
+	ij: (i: I) => J,
+	jk: (j: J) => K,
+	kl: (k: K) => L,
+	lm: (l: L) => M,
+	mn: (m: M) => N,
+	no: (n: N) => O,
+	op: (o: O) => P,
+	pq: (p: P) => Q,
+): Q
 
 export function flow<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R>(
-  a: A,
-  ab: (a: A) => B,
-  bc: (b: B) => C,
-  cd: (c: C) => D,
-  de: (d: D) => E,
-  ef: (e: E) => F,
-  fg: (f: F) => G,
-  gh: (g: G) => H,
-  hi: (h: H) => I,
-  ij: (i: I) => J,
-  jk: (j: J) => K,
-  kl: (k: K) => L,
-  lm: (l: L) => M,
-  mn: (m: M) => N,
-  no: (n: N) => O,
-  op: (o: O) => P,
-  pq: (p: P) => Q,
-  qr: (q: Q) => R,
-): R;
+	a: A,
+	ab: (a: A) => B,
+	bc: (b: B) => C,
+	cd: (c: C) => D,
+	de: (d: D) => E,
+	ef: (e: E) => F,
+	fg: (f: F) => G,
+	gh: (g: G) => H,
+	hi: (h: H) => I,
+	ij: (i: I) => J,
+	jk: (j: J) => K,
+	kl: (k: K) => L,
+	lm: (l: L) => M,
+	mn: (m: M) => N,
+	no: (n: N) => O,
+	op: (o: O) => P,
+	pq: (p: P) => Q,
+	qr: (q: Q) => R,
+): R
 
 export function flow<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S>(
-  a: A,
-  ab: (a: A) => B,
-  bc: (b: B) => C,
-  cd: (c: C) => D,
-  de: (d: D) => E,
-  ef: (e: E) => F,
-  fg: (f: F) => G,
-  gh: (g: G) => H,
-  hi: (h: H) => I,
-  ij: (i: I) => J,
-  jk: (j: J) => K,
-  kl: (k: K) => L,
-  lm: (l: L) => M,
-  mn: (m: M) => N,
-  no: (n: N) => O,
-  op: (o: O) => P,
-  pq: (p: P) => Q,
-  qr: (q: Q) => R,
-  rs: (r: R) => S,
-): S;
+	a: A,
+	ab: (a: A) => B,
+	bc: (b: B) => C,
+	cd: (c: C) => D,
+	de: (d: D) => E,
+	ef: (e: E) => F,
+	fg: (f: F) => G,
+	gh: (g: G) => H,
+	hi: (h: H) => I,
+	ij: (i: I) => J,
+	jk: (j: J) => K,
+	kl: (k: K) => L,
+	lm: (l: L) => M,
+	mn: (m: M) => N,
+	no: (n: N) => O,
+	op: (o: O) => P,
+	pq: (p: P) => Q,
+	qr: (q: Q) => R,
+	rs: (r: R) => S,
+): S
 
 export function flow<
-  A,
-  B,
-  C,
-  D,
-  E,
-  F,
-  G,
-  H,
-  I,
-  J,
-  K,
-  L,
-  M,
-  N,
-  O,
-  P,
-  Q,
-  R,
-  S,
-  T,
+	A,
+	B,
+	C,
+	D,
+	E,
+	F,
+	G,
+	H,
+	I,
+	J,
+	K,
+	L,
+	M,
+	N,
+	O,
+	P,
+	Q,
+	R,
+	S,
+	T,
 >(
-  a: A,
-  ab: (a: A) => B,
-  bc: (b: B) => C,
-  cd: (c: C) => D,
-  de: (d: D) => E,
-  ef: (e: E) => F,
-  fg: (f: F) => G,
-  gh: (g: G) => H,
-  hi: (h: H) => I,
-  ij: (i: I) => J,
-  jk: (j: J) => K,
-  kl: (k: K) => L,
-  lm: (l: L) => M,
-  mn: (m: M) => N,
-  no: (n: N) => O,
-  op: (o: O) => P,
-  pq: (p: P) => Q,
-  qr: (q: Q) => R,
-  rs: (r: R) => S,
-  st: (s: S) => T,
-): T;
+	a: A,
+	ab: (a: A) => B,
+	bc: (b: B) => C,
+	cd: (c: C) => D,
+	de: (d: D) => E,
+	ef: (e: E) => F,
+	fg: (f: F) => G,
+	gh: (g: G) => H,
+	hi: (h: H) => I,
+	ij: (i: I) => J,
+	jk: (j: J) => K,
+	kl: (k: K) => L,
+	lm: (l: L) => M,
+	mn: (m: M) => N,
+	no: (n: N) => O,
+	op: (o: O) => P,
+	pq: (p: P) => Q,
+	qr: (q: Q) => R,
+	rs: (r: R) => S,
+	st: (s: S) => T,
+): T
 export function flow(
-  a: unknown,
-  ab?: Function,
-  bc?: Function,
-  cd?: Function,
-  de?: Function,
-  ef?: Function,
-  fg?: Function,
-  gh?: Function,
-  hi?: Function,
+	a: unknown,
+	ab?: Function,
+	bc?: Function,
+	cd?: Function,
+	de?: Function,
+	ef?: Function,
+	fg?: Function,
+	gh?: Function,
+	hi?: Function,
 ): unknown {
-  switch (arguments.length) {
-    case 1:
-      return a;
-    case 2:
-      return ab!(a);
-    case 3:
-      return bc!(ab!(a));
-    case 4:
-      return cd!(bc!(ab!(a)));
-    case 5:
-      return de!(cd!(bc!(ab!(a))));
-    case 6:
-      return ef!(de!(cd!(bc!(ab!(a)))));
-    case 7:
-      return fg!(ef!(de!(cd!(bc!(ab!(a))))));
-    case 8:
-      return gh!(fg!(ef!(de!(cd!(bc!(ab!(a)))))));
-    case 9:
-      return hi!(gh!(fg!(ef!(de!(cd!(bc!(ab!(a))))))));
-    default: {
-      let ret = arguments[0];
-      for (let i = 1; i < arguments.length; i++) {
-        ret = arguments[i](ret);
-      }
-      return ret;
-    }
-  }
+	switch (arguments.length) {
+		case 1:
+			return a
+		case 2:
+			return ab!(a)
+		case 3:
+			return bc!(ab!(a))
+		case 4:
+			return cd!(bc!(ab!(a)))
+		case 5:
+			return de!(cd!(bc!(ab!(a))))
+		case 6:
+			return ef!(de!(cd!(bc!(ab!(a)))))
+		case 7:
+			return fg!(ef!(de!(cd!(bc!(ab!(a))))))
+		case 8:
+			return gh!(fg!(ef!(de!(cd!(bc!(ab!(a)))))))
+		case 9:
+			return hi!(gh!(fg!(ef!(de!(cd!(bc!(ab!(a))))))))
+		default: {
+			let ret = arguments[0]
+			for (let i = 1; i < arguments.length; i++) {
+				ret = arguments[i](ret)
+			}
+			return ret
+		}
+	}
 }
