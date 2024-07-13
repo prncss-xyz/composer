@@ -87,6 +87,21 @@ export function linear(m: number, b = 0) {
 
 // lenses
 
+export function nth<Index extends keyof O & number, O extends unknown[]>(
+	index: Index,
+) {
+	return lens<O[Index], O>({
+		select: (o) => o[index],
+		reduce: (v, o) => o.with(index, v) as O,
+	})
+}
+
+export function filter<X, Y extends X>(
+	p: (x: X) => x is Y,
+): <A, F, C>(o: Optic<X[], A, F, C>) => Optic<Y[], A, F, never>
+export function filter<X>(
+	p: (x: X) => unknown,
+): <A, F, C>(o: Optic<X[], A, F, C>) => Optic<X[], A, F, never>
 export function filter<X>(p: (x: X) => unknown) {
 	return lens({
 		select: (xs: X[]) => xs.filter(p),
@@ -127,6 +142,12 @@ export function includes<X>(x: X) {
 
 // prisms
 
+export function when<V, W extends V>(
+	p: (v: V) => v is W,
+): <A, F, C>(o: Optic<V, A, F, C>) => Optic<W, A, F | undefined, never>
+export function when<V>(
+	p: (v: V) => unknown,
+): <A, F, C>(o: Optic<V, A, F, C>) => Optic<V, A, F | undefined, never>
 export function when<V>(p: (v: V) => unknown) {
 	return optional<V, V>({
 		select: (v) => (p(v) ? v : undefined),
@@ -164,7 +185,7 @@ export function prop<Key extends keyof O, O>(
 ) => Optic<
 	Exclude<O[Key], undefined>,
 	A,
-	F1 | Key extends OptionalKeys<O> ? undefined : never,
+	F1 | (Key extends OptionalKeys<O> ? undefined : never),
 	Key extends OptionalKeys<O> ? typeof REMOVE : never
 >
 export function prop<Key extends keyof O, O>(key: Key) {

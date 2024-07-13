@@ -45,5 +45,20 @@ describe('filter', () => {
 			expect(result).toEqual(['foo', 2, 'bar', 'baz', 6, 'quux', 'xyzzy'])
 		})
 	})
-	// TODO: narrow type
+	describe('narrow type', () => {
+		type Source = (string | number)[]
+		function isString(x: unknown) {
+			return typeof x === 'string'
+		}
+		const focus = flow(
+			eq<Source>(),
+			filter((x) => isString(x)),
+		)
+		const sourceDefined: Source = ['a', 3]
+		it('view', () => {
+			const res = focus.view(sourceDefined)
+			expectTypeOf(res).toEqualTypeOf<string[]>()
+			expect(res).toEqual(['a'])
+		})
+	})
 })

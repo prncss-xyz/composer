@@ -31,7 +31,10 @@ describe('prop', () => {
 			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 			// @ts-expect-error
 			focusA.command(REMOVE, sourceDefined)
+			// no error
+			focusB.command(REMOVE, sourceDefined)
 		}
+
 		expect(focusB.command(REMOVE, sourceDefined)).toEqual({ a: 'A' })
 		expect(focusB.command(REMOVE, sourceUndefined)).toEqual({ a: 'A' })
 	})
@@ -49,5 +52,20 @@ describe('prop', () => {
 		})
 		expect(focusB.modify(cb, sourceUndefined)).toEqual({ a: 'A' })
 	})
+	describe('compose', () => {
+		it('removable-lens', () => {
+			type Source = { a?: { b: number } }
+			const source: Source = { a: { b: 2 } }
+			const focus = flow(eq<Source>(), prop('a'), prop('b'))
+			const res = focus.view(source)
+			expectTypeOf(focus.view(source)).toEqualTypeOf<number | undefined>(res)
+		})
+		it('lens-removable', () => {
+			type Source = { a: { b?: number } }
+			const source: Source = { a: { b: 2 } }
+			const focus = flow(eq<Source>(), prop('a'), prop('b'))
+			const res = focus.view(source)
+			expectTypeOf(focus.view(source)).toEqualTypeOf<number | undefined>(res)
+		})
+	})
 })
-
