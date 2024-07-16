@@ -1,4 +1,4 @@
-import { ChildMachine, ChildState, machine } from './machine'
+import { ChildMachine, ChildState, machine } from '.'
 
 type Event = {
 	type: 'next'

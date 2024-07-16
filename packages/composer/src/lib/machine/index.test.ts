@@ -1,4 +1,4 @@
-import { machine } from './machine'
+import { machine } from '.'
 
 describe('machine', () => {
 	type TimerEvent =
