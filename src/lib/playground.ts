@@ -1,5 +1,5 @@
 import { eq } from './core'
-import { getterOpt, getter } from './core-getters'
+import { getter, getterOpt } from './core-getters'
 import { flow } from './flow'
 import { at, prop, to } from './optics'
 

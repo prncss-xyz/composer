@@ -12,5 +12,5 @@ describe('rewrite', () => {
 	})
 	it('put', () => {
 		expect(focus.put('foo', '')).toBe('FOO')
- 	})
+	})
 })

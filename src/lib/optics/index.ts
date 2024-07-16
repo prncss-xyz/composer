@@ -1,20 +1,27 @@
 import { id } from '../utils'
 import {
-	lens,
-	removable,
-	optional,
 	getter,
 	getterOpt,
-	REMOVE,
+	lens,
 	Optic,
+	optional,
+	removable,
+	REMOVE,
 } from './core'
 
 // isomorphisms
 
 // ideally, typesystem whould reject any use of reduce instead of making it inert
 // defective
+
 export function to<B, V>(select: (v: V) => B) {
 	return getter<B, V>({
+		select,
+	})
+}
+
+export function toOpt<B, V>(select: (v: V) => B | undefined) {
+	return getterOpt<B, V>({
 		select,
 	})
 }
@@ -166,12 +173,6 @@ export function strToNum() {
 	})
 }
 
-export function toOpt<B, V>(select: (v: V) => B | undefined) {
-	return getterOpt<B, V>({
-		select,
-	})
-}
-
 // removables
 
 type OptionalKeys<T> = {
@@ -208,6 +209,7 @@ export function at<X>(b: number) {
 	})
 }
 
+// defective (when setting a value not repecting predicate)
 export function find<X>(p: (x: X) => unknown) {
 	return removable({
 		select: (xs: X[]) => xs.find(p),
@@ -238,6 +240,7 @@ export function tail<X>() {
 
 // defective
 // aka prepend
+// can represent a stack, although foot is more efficient
 export function head<X>() {
 	return removable<X, X[]>({
 		select: (xs) => xs.at(0),
@@ -248,10 +251,20 @@ export function head<X>() {
 
 // defective
 // aka append
+// can represent a stack
 export function foot<X>() {
 	return removable<X, X[]>({
 		select: (xs) => xs.at(-1),
 		reduce: (x, xs) => [...xs, x],
 		remove: (xs) => xs.slice(0, -1),
+	})
+}
+
+// defective
+export function queue<X>() {
+	return removable<X, X[]>({
+		select: (xs) => xs.at(0),
+		reduce: (x, xs) => [...xs, x],
+		remove: (xs) => xs.slice(1),
 	})
 }

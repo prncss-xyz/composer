@@ -1,8 +1,9 @@
 import { useMemo, useSyncExternalStore } from 'react'
-import { selectedStore, Store } from './stores'
+
 import { eq, Eq, EqReset, Optic } from './core'
-import { uptdateWithOptic } from './update'
 import { isFunction } from './guards'
+import { selectedStore, Store } from './stores'
+import { uptdateWithOptic } from './update'
 import { storeToOptic } from './utils'
 
 export function useStoreSelect<T, U>(

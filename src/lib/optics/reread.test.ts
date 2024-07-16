@@ -11,7 +11,7 @@ describe('reread', () => {
 		expect(focus.view('foo')).toBe('FOO')
 	})
 	it('put', () => {
-    // TODO: which behavior is better?
+		// TODO: which behavior is better?
 		expect(focus.put('', 'foo')).toBe('')
 		/* expect(focus.put('', 'foo')).toBe('foo') */
 	})

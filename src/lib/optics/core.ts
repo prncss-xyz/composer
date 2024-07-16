@@ -1,5 +1,5 @@
 import { isFunction } from '../guards'
-import { fromInit, id, Init } from '../utils'
+import { id, Init, initToVal } from '../utils'
 
 function isNever(v: unknown): v is never {
 	return false
@@ -43,8 +43,10 @@ function composeFaillure<F1, F2>(
 	if (f1 === isNever) return f2 as F<F1, F2>
 	if (f2 === isNever) return f1 as F<F1, F2>
 	if ((f1 as unknown) === f2) return f1 as F<F1, F2>
+	/* c8 ignore start */
 	throw new Error('unexpected faillure value')
 }
+/* c8 ignore stop */
 
 export class Optic<V, A, F, C> {
 	private select: (a: A) => V | F
@@ -60,6 +62,15 @@ export class Optic<V, A, F, C> {
 		this.exec = o.exec
 	}
 	_compose<B, F2, C2>(o: IOptic<B, V, F2, C2>) {
+		// this is an optimization, it should not change behavior
+		if (this.isFaillure === isNever)
+			return new Optic<B, A, F2, C2>({
+				select: (a) => o.select(this.select(a) as V),
+				isFaillure: o.isFaillure,
+				reduce: (b, a) => this.reduce(o.reduce(b, this.select(a) as V), a),
+				isCommand: o.isCommand,
+				exec: (c, a) => this.reduce(o.exec(c, this.select(a) as V), a),
+			})
 		return new Optic<B, A, F | F2, C2>({
 			select: (a) => {
 				const t = this.select(a)
@@ -123,7 +134,7 @@ export function eq<T>() {
 export function eqWithReset<T>(init: Init<T>) {
 	return Optic.eq<T, typeof RESET>({
 		isCommand: isReset,
-		exec: () => fromInit(init),
+		exec: () => initToVal(init),
 	})
 }
 
