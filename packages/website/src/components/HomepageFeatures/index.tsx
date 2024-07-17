@@ -22,30 +22,30 @@ const FeatureList: FeatureItem[] = [
 		Svg: TbLambda,
 		description: (
 			<>
-				Define your state logic with composable (mostly) pure functions. Make it
+				Define your state logic with composable pure functions. Make it
 				uncoupled and testable.
 			</>
 		),
 	},
 	// battery
 	{
-		title: 'Well known approaches',
+		title: 'Well known abstractions',
 		Svg: TbBatteryCharging,
 		description: (
-			<>Finite state machines, functional optics, debounce, throttle.</>
+			<>Enjoy finite state machines, functional optics, and async primitives.</>
 		),
 	},
 	// feather
 	{
 		title: 'Lightweight',
 		Svg: TbFeather,
-		description: <>The library is tree-shakable and has no dependencies.</>,
+		description: <>The library is tree-shakable and dependency-free.</>,
 	},
 	// gear
 	{
 		title: 'Opt-in integration',
 		Svg: TbCheckbox,
-		description: <>Simple react integration as a separate package.</>,
+		description: <>Use react integration with a separate package.</>,
 	},
 ]
 
