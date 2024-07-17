@@ -4,17 +4,17 @@ import dts from 'vite-plugin-dts'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-	plugins: [dts({ include: ['lib'] })],
+	plugins: [dts({ include: ['src'] })],
 	build: {
 		copyPublicDir: false,
 		sourcemap: true,
 		emptyOutDir: true,
 		lib: {
 			entry: {
-				machine: 'lib/machine/index.ts',
-				optics: 'lib/optics/index.ts',
-				utils: 'lib/utils/index.ts',
-				stores: 'lib/stores/index.ts',
+				machine: 'src/machine/index.ts',
+				optics: 'src/optics/index.ts',
+				utils: 'src/utils/index.ts',
+				stores: 'src/stores/index.ts',
 			},
 			name: 'composer',
 			formats: ['es'],
@@ -22,7 +22,7 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			'@': resolve(__dirname, './lib'),
+			'@': resolve(__dirname, './src'),
 		},
 	},
 })

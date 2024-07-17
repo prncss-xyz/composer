@@ -3,7 +3,7 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
 	test: {
-		include: ['lib/**'],
+		include: ['src/**'],
 		coverage: {
 			reporter: ['text', 'json', 'clover', 'lcov'],
 		},
@@ -11,7 +11,7 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			'@': path.resolve(__dirname, './lib'),
+			'@': path.resolve(__dirname, './src'),
 		},
 	},
 })
