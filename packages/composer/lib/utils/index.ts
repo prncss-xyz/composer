@@ -18,10 +18,6 @@ export function initToVal<T>(init: Init<T>): T {
 	return isFunction(init) ? init() : init
 }
 
-export function initToCb<T>(init: Init<T>): () => T {
-	return isFunction(init) ? init : () => init
-}
-
 export function storeToOptic<V>(store: Store<V>) {
 	return eqWithReset(() => store.initial())
 }

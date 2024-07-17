@@ -19,24 +19,24 @@ export type * from './core'
 
 export function to<B, V>(select: (v: V) => B) {
 	return getter<B, V>({
-		select,
+		getter: select,
 	})
 }
 
 export function toOpt<B, V>(select: (v: V) => B | undefined) {
 	return getterOpt<B, V>({
-		select,
+		getter: select,
 	})
 }
 
 // impure
 export function log<V>(message = '') {
 	return lens<V, V>({
-		select: (v) => {
+		getter: (v) => {
 			console.log(message, 'reading', v)
 			return v
 		},
-		reduce: (b, v) => {
+		setter: (b, v) => {
 			console.log(message, 'writing', b, v)
 			return b
 		},
@@ -45,17 +45,17 @@ export function log<V>(message = '') {
 
 export function reread<A>(f: (a: A) => A) {
 	return lens<A, A>({
-		select: f,
+		getter: f,
 		// TODO: which behavior is better?
-		reduce: id,
-		/* reduce: (_, a) => a, */
+		setter: id,
+		/* setter: (_, a) => a, */
 	})
 }
 
 export function rewrite<A>(f: (next: A, last: A) => A) {
 	return lens<A, A>({
-		select: id,
-		reduce: f,
+		getter: id,
+		setter: f,
 	})
 }
 
@@ -68,8 +68,8 @@ export function dedupe<A>(areEqual: (a: A, b: A) => unknown = Object.is) {
 
 export function indexed<T>() {
 	return lens({
-		select: (xs: T[]) => xs.map((v, i) => [i, v] as const),
-		reduce: (entries: (readonly [number, T])[]) => {
+		getter: (xs: T[]) => xs.map((v, i) => [i, v] as const),
+		setter: (entries: (readonly [number, T])[]) => {
 			const res: T[] = []
 			for (const [index, value] of entries) {
 				res[index] = value
@@ -81,8 +81,8 @@ export function indexed<T>() {
 
 export function split(separator = ',') {
 	return lens<string[], string>({
-		select: (str) => str.split(separator),
-		reduce: (xs) => {
+		getter: (str) => str.split(separator),
+		setter: (xs) => {
 			return xs.join(separator)
 		},
 	})
@@ -90,8 +90,8 @@ export function split(separator = ',') {
 
 export function linear(m: number, b = 0) {
 	return lens<number, number>({
-		select: (x) => m * x + b,
-		reduce: (y) => (y - b) / m,
+		getter: (x) => m * x + b,
+		setter: (y) => (y - b) / m,
 	})
 }
 
@@ -101,8 +101,8 @@ export function nth<Index extends keyof O & number, O extends unknown[]>(
 	index: Index,
 ) {
 	return lens<O[Index], O>({
-		select: (o) => o[index],
-		reduce: (v, o) => o.with(index, v) as O,
+		getter: (o) => o[index],
+		setter: (v, o) => o.with(index, v) as O,
 	})
 }
 
@@ -114,8 +114,8 @@ export function filter<X>(
 ): <A, F, C>(o: Optic<X[], A, F, C>) => Optic<X[], A, F, never>
 export function filter<X>(p: (x: X) => unknown) {
 	return lens({
-		select: (xs: X[]) => xs.filter(p),
-		reduce: (fs: X[], xs: X[]) => {
+		getter: (xs: X[]) => xs.filter(p),
+		setter: (fs: X[], xs: X[]) => {
 			const rs = []
 			let i = 0
 			let j = 0
@@ -141,8 +141,8 @@ export function filter<X>(p: (x: X) => unknown) {
 // equivalence relation
 export function includes<X>(x: X) {
 	return lens<boolean, X[]>({
-		select: (xs) => xs.includes(x),
-		reduce: (v, xs) => {
+		getter: (xs) => xs.includes(x),
+		setter: (v, xs) => {
 			if (xs.includes(x) === v) return xs
 			if (v) return [...xs, x]
 			return xs.filter((x_) => x_ !== x)
@@ -160,19 +160,19 @@ export function when<V>(
 ): <A, F, C>(o: Optic<V, A, F, C>) => Optic<V, A, F | undefined, never>
 export function when<V>(p: (v: V) => unknown) {
 	return optional<V, V>({
-		select: (v) => (p(v) ? v : undefined),
-		reduce: id,
+		getter: (v) => (p(v) ? v : undefined),
+		setter: id,
 	})
 }
 
 export function strToNum() {
 	return optional({
-		select: (s: string) => {
+		getter: (s: string) => {
 			const num = Number(s)
 			if (isNaN(num)) return undefined
 			return num
 		},
-		reduce: (n) => String(n),
+		setter: (n) => String(n),
 	})
 }
 
@@ -194,9 +194,9 @@ export function prop<Key extends keyof O, O>(
 >
 export function prop<Key extends keyof O, O>(key: Key) {
 	return removable<Exclude<O[Key], undefined>, O>({
-		select: (o) => o[key] as Exclude<O[Key], undefined>,
-		reduce: (v, o) => ({ ...o, [key]: v }),
-		remove: (o) => {
+		getter: (o) => o[key] as Exclude<O[Key], undefined>,
+		setter: (v, o) => ({ ...o, [key]: v }),
+		remover: (o) => {
 			const res = { ...o }
 			delete res[key]
 			return res
@@ -206,24 +206,24 @@ export function prop<Key extends keyof O, O>(key: Key) {
 
 export function at<X>(b: number) {
 	return removable<X, X[]>({
-		select: (xs) => xs.at(b),
-		reduce: (x: X, xs) => (b < xs.length ? xs.with(b, x) : xs),
-		remove: (xs) => xs.toSpliced(b),
+		getter: (xs) => xs.at(b),
+		setter: (x: X, xs) => (b < xs.length ? xs.with(b, x) : xs),
+		remover: (xs) => xs.toSpliced(b),
 	})
 }
 
 // defective (when setting a value not repecting predicate)
 export function find<X>(p: (x: X) => unknown) {
 	return removable({
-		select: (xs: X[]) => xs.find(p),
-		reduce: (x: X, xs: X[]) => {
+		getter: (xs: X[]) => xs.find(p),
+		setter: (x: X, xs: X[]) => {
 			const i = xs.findIndex(p)
 			if (i < 0) return [...xs, x]
 			xs = [...xs]
 			xs[i] = x
 			return xs
 		},
-		remove: (xs: X[]) => {
+		remover: (xs: X[]) => {
 			const i = xs.findIndex(p)
 			if (i < 0) return xs
 			const r = xs.slice(0, i)
@@ -235,9 +235,9 @@ export function find<X>(p: (x: X) => unknown) {
 
 export function tail<X>() {
 	return removable<X[], X[]>({
-		select: (last) => (last.length ? last.slice(1) : undefined),
-		reduce: (next, last) => (last.length ? [last[0], ...next] : last),
-		remove: (last) => (last.length ? last.slice(0, 1) : last),
+		getter: (last) => (last.length ? last.slice(1) : undefined),
+		setter: (next, last) => (last.length ? [last[0], ...next] : last),
+		remover: (last) => (last.length ? last.slice(0, 1) : last),
 	})
 }
 
@@ -246,9 +246,9 @@ export function tail<X>() {
 // can represent a stack, although foot is more efficient
 export function head<X>() {
 	return removable<X, X[]>({
-		select: (xs) => xs.at(0),
-		reduce: (x, xs) => [x, ...xs],
-		remove: (xs) => xs.slice(1),
+		getter: (xs) => xs.at(0),
+		setter: (x, xs) => [x, ...xs],
+		remover: (xs) => xs.slice(1),
 	})
 }
 
@@ -257,17 +257,17 @@ export function head<X>() {
 // can represent a stack
 export function foot<X>() {
 	return removable<X, X[]>({
-		select: (xs) => xs.at(-1),
-		reduce: (x, xs) => [...xs, x],
-		remove: (xs) => xs.slice(0, -1),
+		getter: (xs) => xs.at(-1),
+		setter: (x, xs) => [...xs, x],
+		remover: (xs) => xs.slice(0, -1),
 	})
 }
 
 // defective
 export function queue<X>() {
 	return removable<X, X[]>({
-		select: (xs) => xs.at(0),
-		reduce: (x, xs) => [...xs, x],
-		remove: (xs) => xs.slice(1),
+		getter: (xs) => xs.at(0),
+		setter: (x, xs) => [...xs, x],
+		remover: (xs) => xs.slice(1),
 	})
 }

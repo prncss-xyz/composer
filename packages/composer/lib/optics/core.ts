@@ -27,9 +27,9 @@ function inert<T, U>(_: T, u: U) {
 }
 
 interface IOptic<V, A, F, C> {
-	select: (a: A) => V | F
+	getter: (a: A) => V | F
 	isFaillure: (v: unknown) => v is F
-	reduce: (v: V, a: A) => A
+	setter: (v: V, a: A) => A
 	isCommand: (v: unknown) => v is C
 	exec: (c: C, a: A) => A
 }
@@ -47,62 +47,63 @@ function composeFaillure<F1, F2>(
 }
 /* c8 ignore stop */
 
-export class Optic<V, A, F, C> {
-	private select: (a: A) => V | F
-	private isFaillure: (v: unknown) => v is F
-	private reduce: (v: V, a: A) => A
-	private isCommand: (v: unknown) => v is C
-	private exec: (c: C, a: A) => A
+export class Optic<V, A, F, C> implements IOptic<V, A, F, C> {
+	getter
+	isFaillure
+	setter
+	isCommand
+	exec
 	private constructor(o: IOptic<V, A, F, C>) {
-		this.select = o.select
+		this.getter = o.getter
 		this.isFaillure = o.isFaillure
-		this.reduce = o.reduce
+		this.setter = o.setter
 		this.isCommand = o.isCommand
 		this.exec = o.exec
 	}
 	_compose<B, F2, C2>(o: IOptic<B, V, F2, C2>) {
 		// this is an optimization, it should not change behavior
+		// PERF: check when function is eqaul to `utils/id`
 		if (this.isFaillure === isNever)
 			return new Optic<B, A, F2, C2>({
-				select: (a) => o.select(this.select(a) as V),
+				getter: (a) => o.getter(this.getter(a) as V),
 				isFaillure: o.isFaillure,
-				reduce: (b, a) => this.reduce(o.reduce(b, this.select(a) as V), a),
+				setter: (b, a) => this.setter(o.setter(b, this.getter(a) as V), a),
 				isCommand: o.isCommand,
-				exec: (c, a) => this.reduce(o.exec(c, this.select(a) as V), a),
+				exec: (c, a) => this.setter(o.exec(c, this.getter(a) as V), a),
 			})
 		return new Optic<B, A, F | F2, C2>({
-			select: (a) => {
-				const t = this.select(a)
+			getter: (a) => {
+				const t = this.getter(a)
 				if (this.isFaillure(t)) return t
-				return o.select(t)
+				return o.getter(t)
 			},
 			isFaillure: composeFaillure(this.isFaillure, o.isFaillure),
-			reduce: (b, a) => {
-				const t = this.select(a)
+			setter: (b, a) => {
+				const t = this.getter(a)
 				if (this.isFaillure(t)) return a
-				return this.reduce(o.reduce(b, t), a)
+				return this.setter(o.setter(b, t), a)
 			},
 			isCommand: o.isCommand,
 			exec: (c, a) => {
-				const t = this.select(a)
+				const t = this.getter(a)
 				if (this.isFaillure(t)) return a
-				return this.reduce(o.exec(c, t), a)
+				return this.setter(o.exec(c, t), a)
 			},
 		})
 	}
 	view(a: A) {
-		return this.select(a)
+		return this.getter(a)
 	}
 	put(v: V, a: A) {
-		return this.reduce(v, a)
+		return this.setter(v, a)
 	}
 	command(c: C, a: A) {
 		return this.exec(c, a)
 	}
 	modify(f: (v: V) => V, a: A) {
-		const v = this.select(a)
+		const v = this.getter(a)
 		if (this.isFaillure(v)) return a
-		return this.reduce(f(v), a)
+		return this.setter(f(v), a)
 	}
 	update(arg: C | V | ((v: V) => V), a: A) {
 		if (this.isCommand(arg)) return a
@@ -117,9 +118,9 @@ export class Optic<V, A, F, C> {
 		exec: (c: C, a: T) => T
 	}) {
 		return new Optic({
-			select: id,
+			getter: id,
 			isFaillure: isNever,
-			reduce: id<T>,
+			setter: id<T>,
 			isCommand,
 			exec,
 		})
@@ -140,17 +141,17 @@ export function eqWithReset<T>(init: Init<T>) {
 }
 
 export function lens<B, V>({
-	select,
-	reduce,
+	getter,
+	setter,
 }: {
-	select: (v: V) => B
-	reduce: (b: B, v: V) => V
+	getter: (v: V) => B
+	setter: (b: B, v: V) => V
 }) {
 	return function <A, F, C>(o: Optic<V, A, F, C>) {
 		return o._compose<B, F, never>({
-			select,
+			getter: getter,
 			isFaillure: isNever,
-			reduce,
+			setter: setter,
 			isCommand: isNever,
 			exec: inert,
 		})
@@ -158,17 +159,17 @@ export function lens<B, V>({
 }
 
 export function optional<B, V>({
-	select,
-	reduce,
+	getter,
+	setter,
 }: {
-	select: (v: V) => B | undefined
-	reduce: (b: B, v: V) => V
+	getter: (v: V) => B | undefined
+	setter: (b: B, v: V) => V
 }) {
 	return function <A, F, C>(o: Optic<V, A, F, C>) {
 		return o._compose({
-			select,
+			getter: getter,
 			isFaillure: isUndefined,
-			reduce,
+			setter: setter,
 			isCommand: isNever,
 			exec: inert,
 		})
@@ -176,39 +177,39 @@ export function optional<B, V>({
 }
 
 export function removable<B, V>({
-	select,
-	reduce,
-	remove,
+	getter,
+	setter,
+	remover,
 }: {
-	select: (v: V) => B | undefined
-	reduce: (b: B, v: V) => V
-	remove: (v: V) => V
+	getter: (v: V) => B | undefined
+	setter: (b: B, v: V) => V
+	remover: (v: V) => V
 }) {
 	return function <A, F, C>(o: Optic<V, A, F, C>) {
 		return o._compose({
-			select,
+			getter: getter,
 			isFaillure: isUndefined,
-			reduce,
+			setter: setter,
 			isCommand: isRemove,
-			exec: (_, a) => remove(a),
+			exec: (_, a) => remover(a),
 		})
 	}
 }
 
-export function getter<B, V>({ select }: { select: (v: V) => B }) {
+export function getter<B, V>({ getter }: { getter: (v: V) => B }) {
 	return lens<B, V>({
-		select,
-		reduce: forbidden,
+		getter: getter,
+		setter: forbidden,
 	})
 }
 
 export function getterOpt<B, V>({
-	select,
+	getter,
 }: {
-	select: (v: V) => B | undefined
+	getter: (v: V) => B | undefined
 }) {
 	return optional<B, V>({
-		select,
-		reduce: forbidden,
+		getter: getter,
+		setter: forbidden,
 	})
 }
