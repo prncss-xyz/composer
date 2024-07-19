@@ -215,8 +215,13 @@ export function at<X>(index: number) {
 	})
 }
 
-// TODO: type guard
 // defective (when setting a value not repecting predicate)
+export function find<X, Y extends X>(
+	p: (x: X) => x is Y,
+): <A, F, C>(o: Optic<X[], A, F, C>) => Optic<Y, A, undefined, typeof REMOVE>
+export function find<X>(
+	p: (x: X) => unknown,
+): <A, F, C>(o: Optic<X[], A, F, C>) => Optic<X, A, undefined, typeof REMOVE>
 export function find<X>(p: (x: X) => unknown) {
 	return removable({
 		getter: (xs: X[]) => xs.find(p),

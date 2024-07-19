@@ -59,4 +59,14 @@ describe('find', () => {
 			expect(focus.command(REMOVE, sourceUndefined)).toEqual(sourceUndefined)
 		})
 	})
+	test('refine type', () => {
+		type T = string | number
+		const focus = flow(
+			eq<T[]>(),
+			find((item) => typeof item === 'string'),
+		)
+		const source: T[] = []
+		const res = focus.view(source)
+		expectTypeOf(res).toEqualTypeOf<string | undefined>()
+	})
 })
