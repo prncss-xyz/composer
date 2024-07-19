@@ -204,14 +204,18 @@ export function prop<Key extends keyof O, O>(key: Key) {
 	})
 }
 
-export function at<X>(b: number) {
+function adjust(index: number, length: number) {
+	return length < 0 ? length + index : index
+}
+export function at<X>(index: number) {
 	return removable<X, X[]>({
-		getter: (xs) => xs.at(b),
-		setter: (x: X, xs) => (b < xs.length ? xs.with(b, x) : xs),
-		remover: (xs) => xs.toSpliced(b),
+		getter: (xs) => xs.at(index),
+		setter: (x: X, xs) => (index < xs.length ? xs.with(index, x) : xs),
+		remover: (xs) => xs.toSpliced(adjust(index, xs.length)),
 	})
 }
 
+// TODO: type guard
 // defective (when setting a value not repecting predicate)
 export function find<X>(p: (x: X) => unknown) {
 	return removable({

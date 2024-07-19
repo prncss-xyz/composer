@@ -1,6 +1,6 @@
 import { at } from '.'
 import { flow } from '../utils/flow'
-import { eq } from './core'
+import { eq, REMOVE } from './core'
 
 describe('at', () => {
 	type Source = string[]
@@ -36,5 +36,14 @@ describe('at', () => {
 			'baz',
 			'quux',
 		])
+	})
+	test('negative index', () => {
+		const focus = flow(eq<string[]>(), at(-1))
+		const res: string | undefined = focus.view(['a', 'b'])
+		expect(res).toBe('b')
+		const updated = focus.put('B', ['a', 'b'])
+		expect(updated).toEqual(['a', 'B'])
+		const removed = focus.exec(REMOVE, ['a', 'b'])
+		expect(removed).toEqual(['a'])
 	})
 })
