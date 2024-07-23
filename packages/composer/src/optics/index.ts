@@ -7,6 +7,7 @@ import {
 	optional,
 	removable,
 	REMOVE,
+	traversal,
 } from './core'
 
 export * from './core'
@@ -48,7 +49,7 @@ export function reread<A>(f: (a: A) => A) {
 		getter: f,
 		// TODO: which behavior is better?
 		setter: id,
-		/* setter: (_, a) => a, */
+		/* setter: (_v, a) => a, */
 	})
 }
 
@@ -63,19 +64,6 @@ export function dedupe<A>(areEqual: (a: A, b: A) => unknown = Object.is) {
 	return rewrite<A>((next, last) => {
 		if (areEqual(next, last)) return last
 		return next
-	})
-}
-
-export function indexed<T>() {
-	return lens({
-		getter: (xs: T[]) => xs.map((v, i) => [i, v] as const),
-		setter: (entries: (readonly [number, T])[]) => {
-			const res: T[] = []
-			for (const [index, value] of entries) {
-				res[index] = value
-			}
-			return res
-		},
 	})
 }
 
@@ -162,17 +150,6 @@ export function when<V>(p: (v: V) => unknown) {
 	return optional<V, V>({
 		getter: (v) => (p(v) ? v : undefined),
 		setter: id,
-	})
-}
-
-export function strToNum() {
-	return optional({
-		getter: (s: string) => {
-			const num = Number(s)
-			if (isNaN(num)) return undefined
-			return num
-		},
-		setter: (n) => String(n),
 	})
 }
 
@@ -278,5 +255,26 @@ export function queue<X>() {
 		getter: (xs) => xs.at(0),
 		setter: (x, xs) => [...xs, x],
 		remover: (xs) => xs.slice(1),
+	})
+}
+
+// traversals
+export function elems<B>() {
+	return traversal<B, B[]>({
+		refold: (fold) => {
+			return function (bs, acc) {
+				for (const b of bs) {
+					acc = fold(b, acc)
+				}
+				return acc
+			}
+		},
+		mapper: (f, bs) => {
+			const res: B[] = []
+			for (let i = 0; i < bs.length; i++) {
+				res[i] = f(bs[i])
+			}
+			return res
+		},
 	})
 }

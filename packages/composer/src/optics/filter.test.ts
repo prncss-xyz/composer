@@ -10,7 +10,9 @@ describe('filter', () => {
 			eq<Source>(),
 			filter((item) => item !== 'quux'),
 		)
-		expect(focus.view(source)).toEqual(['baz', 'xyzzy'])
+		const res = focus.view(source)
+		expectTypeOf(res).toEqualTypeOf<string[]>()
+		expect(res).toEqual(['baz', 'xyzzy'])
 	})
 	describe('put', () => {
 		it('put the same numbers of items', () => {
