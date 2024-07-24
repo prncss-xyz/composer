@@ -21,36 +21,36 @@ describe('prop', () => {
 		expect(focusB.view(sourceUndefined)).toBeUndefined()
 	})
 	it('put', () => {
-		expect(focusA.put('C', sourceDefined)).toEqual({ a: 'C', b: 'B' })
-		expect(focusA.put('C', sourceUndefined)).toEqual({ a: 'C' })
-		expect(focusB.put('C', sourceDefined)).toEqual({ a: 'A', b: 'C' })
-		expect(focusB.put('C', sourceUndefined)).toEqual({ a: 'A', b: 'C' })
+		expect(focusA.put('C')(sourceDefined)).toEqual({ a: 'C', b: 'B' })
+		expect(focusA.put('C')(sourceUndefined)).toEqual({ a: 'C' })
+		expect(focusB.put('C')(sourceDefined)).toEqual({ a: 'A', b: 'C' })
+		expect(focusB.put('C')(sourceUndefined)).toEqual({ a: 'A', b: 'C' })
 	})
 	it('remove', () => {
 		;() => {
 			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 			// @ts-expect-error
-			focusA.command(REMOVE, sourceDefined)
+			focusA.command(REMOVE)(sourceDefined)
 			// no error
-			focusB.command(REMOVE, sourceDefined)
+			focusB.command(REMOVE)(sourceDefined)
 		}
 
-		expect(focusB.command(REMOVE, sourceDefined)).toEqual({ a: 'A' })
-		expect(focusB.command(REMOVE, sourceUndefined)).toEqual({ a: 'A' })
+		expect(focusB.command(REMOVE)(sourceDefined)).toEqual({ a: 'A' })
+		expect(focusB.command(REMOVE)(sourceUndefined)).toEqual({ a: 'A' })
 	})
 	it('modify', () => {
 		const cb = (x: string) => `${x} UPDATED`
-		expect(focusA.modify(cb, sourceDefined)).toEqual({
+		expect(focusA.modify(cb)(sourceDefined)).toEqual({
 			a: 'A UPDATED',
 			b: 'B',
 		})
-		expect(focusA.modify(cb, sourceUndefined)).toEqual({ a: 'A UPDATED' })
+		expect(focusA.modify(cb)(sourceUndefined)).toEqual({ a: 'A UPDATED' })
 
-		expect(focusB.modify(cb, sourceDefined)).toEqual({
+		expect(focusB.modify(cb)(sourceDefined)).toEqual({
 			a: 'A',
 			b: 'B UPDATED',
 		})
-		expect(focusB.modify(cb, sourceUndefined)).toEqual({ a: 'A' })
+		expect(focusB.modify(cb)(sourceUndefined)).toEqual({ a: 'A' })
 	})
 	describe('compose', () => {
 		it('removable-lens', () => {

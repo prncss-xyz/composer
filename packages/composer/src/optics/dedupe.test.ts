@@ -10,7 +10,7 @@ describe('dedupe', () => {
 		expect(focus.view('FOO')).toBe('FOO')
 	})
 	it('put', () => {
-		expect(focus.put('foo', 'bar')).toBe('foo')
-		expect(focus.put('foo', 'FOO')).toBe('FOO')
+		expect(focus.put('foo')('bar')).toBe('foo')
+		expect(focus.put('foo')('FOO')).toBe('FOO')
 	})
 })

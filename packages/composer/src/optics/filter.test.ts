@@ -22,7 +22,7 @@ describe('filter', () => {
 				eq<Source>(),
 				filter((item) => item !== 'quux'),
 			)
-			expect(focus.put(['BAZ', 'XYZZY'], source)).toEqual([
+			expect(focus.put(['BAZ', 'XYZZY'])(source)).toEqual([
 				'BAZ',
 				'quux',
 				'XYZZY',
@@ -34,7 +34,7 @@ describe('filter', () => {
 			const source: Source = [1, 2, 3, 5, 6]
 			const isOdd = (x: Item) => typeof x === 'number' && x % 2 === 1
 			const focus = flow(eq<Source>(), filter(isOdd))
-			const result = focus.put(['foo', 'bar'], source)
+			const result = focus.put(['foo', 'bar'])(source)
 			expect(result).toEqual(['foo', 2, 'bar', 6])
 		})
 		it('put more items', () => {
@@ -43,7 +43,7 @@ describe('filter', () => {
 			const source: Source = [1, 2, 3, 5, 6]
 			const isOdd = (x: Item) => typeof x === 'number' && x % 2 === 1
 			const focus = flow(eq<Source>(), filter(isOdd))
-			const result = focus.put(['foo', 'bar', 'baz', 'quux', 'xyzzy'], source)
+			const result = focus.put(['foo', 'bar', 'baz', 'quux', 'xyzzy'])(source)
 			expect(result).toEqual(['foo', 2, 'bar', 'baz', 6, 'quux', 'xyzzy'])
 		})
 	})

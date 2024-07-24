@@ -45,3 +45,9 @@ const coffeeMachine = machine<CoffeeState, Event>({
 })
 
 console.log(coffeeMachine.init())
+
+describe('child machine', () => {
+	it('dummy', () => {
+		expect(true).toBe(true)
+	})
+})

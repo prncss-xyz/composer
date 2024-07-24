@@ -12,7 +12,7 @@ describe('nth', () => {
 		expect(res).toBe('a')
 	})
 	it('put', () => {
-		const res = focus.put('A', source)
+		const res = focus.put('A')(source)
 		expect(res).toEqual([1, 'A', true])
 		expectTypeOf(res).toEqualTypeOf<Source>()
 	})

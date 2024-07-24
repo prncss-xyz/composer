@@ -20,16 +20,16 @@ describe('strToNum', () => {
 	})
 	describe('put', () => {
 		it('defined, true', () => {
-			expect(focus.put(true, sourceDefined)).toEqual(['a', 'b', 'c'])
+			expect(focus.put(true)(sourceDefined)).toEqual(['a', 'b', 'c'])
 		})
 		it('defined, false', () => {
-			expect(focus.put(false, sourceDefined)).toEqual(['a', 'c'])
+			expect(focus.put(false)(sourceDefined)).toEqual(['a', 'c'])
 		})
 		it('undefined, true', () => {
-			expect(focus.put(true, sourceUndefined)).toEqual(['a', 'b', 'c'])
+			expect(focus.put(true)(sourceUndefined)).toEqual(['a', 'b', 'c'])
 		})
 		it('undefined, false', () => {
-			expect(focus.put(false, sourceUndefined)).toEqual(['a', 'c'])
+			expect(focus.put(false)(sourceUndefined)).toEqual(['a', 'c'])
 		})
 	})
 })

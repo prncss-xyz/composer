@@ -9,6 +9,6 @@ describe('split', () => {
 		expect(focus.view(source)).toEqual(['foo', 'bar', 'baz'])
 	})
 	it('put', () => {
-		expect(focus.put(['FOO', 'BAR', 'BAZ'], source)).toEqual('FOO BAR BAZ')
+		expect(focus.put(['FOO', 'BAR', 'BAZ'])(source)).toEqual('FOO BAR BAZ')
 	})
 })

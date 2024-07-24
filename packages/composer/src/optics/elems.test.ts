@@ -18,22 +18,22 @@ describe('simple', () => {
 		expect(focus.view(sourceDefined)).toBe(1)
 	})
 	it('fold undefined', () => {
-		expect(focus.fold(collect(), sourceUndefined)).toEqual([])
+		expect(focus.fold(collect())(sourceUndefined)).toEqual([])
 	})
 	it('fold defined', () => {
-		expect(focus.fold(collect(), sourceDefined)).toEqual([1, 2, 3])
+		expect(focus.fold(collect())(sourceDefined)).toEqual([1, 2, 3])
 	})
 	it.skip('put undefined', () => {
-		expect(focus.put(9, sourceUndefined)).toEqual(sourceUndefined)
+		expect(focus.put(9)(sourceUndefined)).toEqual(sourceUndefined)
 	})
 	it.skip('put defined', () => {
-		expect(focus.put(8, sourceDefined)).toEqual([8, 8, 8])
+		expect(focus.put(8)(sourceDefined)).toEqual([8, 8, 8])
 	})
 	it('modify undefined', () => {
-		expect(focus.modify(cb, sourceUndefined)).toEqual(sourceUndefined)
+		expect(focus.modify(cb)(sourceUndefined)).toEqual(sourceUndefined)
 	})
 	it('modify defined', () => {
-		expect(focus.modify(cb, sourceDefined)).toEqual([2, 4, 6])
+		expect(focus.modify(cb)(sourceDefined)).toEqual([2, 4, 6])
 	})
 })
 
@@ -43,10 +43,10 @@ describe('composed', () => {
 		const source: Source = { a: [{ c: 1 }, { c: 2 }] }
 		const focus = flow(eq<Source>(), prop('a'), elems(), prop('c'))
 		it('fold', () => {
-			expect(focus.fold(collect(), source)).toEqual([1, 2])
+			expect(focus.fold(collect())(source)).toEqual([1, 2])
 		})
 		it('modify', () => {
-			expect(focus.modify((x) => x * 2, source)).toEqual({
+			expect(focus.modify((x) => x * 2)(source)).toEqual({
 				a: [{ c: 2 }, { c: 4 }],
 			})
 		})
@@ -59,10 +59,10 @@ describe('composed', () => {
 		]
 		const focus = flow(eq<Source>(), elems(), elems())
 		it('fold', () => {
-			expect(focus.fold(collect(), source)).toEqual([1, 2, 3, 4])
+			expect(focus.fold(collect())(source)).toEqual([1, 2, 3, 4])
 		})
 		it('modify', () => {
-			expect(focus.modify((x) => x * 2, source)).toEqual([
+			expect(focus.modify((x) => x * 2)(source)).toEqual([
 				[2, 4],
 				[6, 8],
 			])
@@ -77,7 +77,7 @@ describe('composed', () => {
 				elems(),
 				when((item) => item !== 'quux'),
 			)
-			expect(focus.fold(collect(), source)).toEqual(['baz', 'xyzzy'])
+			expect(focus.fold(collect())(source)).toEqual(['baz', 'xyzzy'])
 		})
 		it('map', () => {
 			type Source = string[]
@@ -87,7 +87,7 @@ describe('composed', () => {
 				elems(),
 				when((item) => item !== 'quux'),
 			)
-			expect(focus.modify((x) => x.toUpperCase(), source)).toEqual([
+			expect(focus.modify((x) => x.toUpperCase())(source)).toEqual([
 				'BAZ',
 				'quux',
 				'XYZZY',
@@ -101,7 +101,7 @@ describe('composed', () => {
 				elems(),
 				when((item) => item !== 'baz'),
 			)
-			expect(focus.fold(collect(), source)).toEqual(['quux', 'xyzzy'])
+			expect(focus.fold(collect())(source)).toEqual(['quux', 'xyzzy'])
 		})
 		it.skip('view', () => {
 			type Source = string[]
@@ -121,7 +121,7 @@ describe('composed', () => {
 				elems(),
 				when((item) => item !== 'baz'),
 			)
-			expect(focus.put('toto', source)).toEqual(['baz', 'toto', 'toto'])
+			expect(focus.put('toto')(source)).toEqual(['baz', 'toto', 'toto'])
 		})
 	})
 })

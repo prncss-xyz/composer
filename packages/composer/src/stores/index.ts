@@ -1,4 +1,4 @@
-import { id, Init, initToVal } from '../utils'
+import { fromInit, id, Init } from '../utils'
 
 interface StoreConstructor<T> {
 	init: Init<T>
@@ -16,10 +16,10 @@ export class Store<T> {
 		this.init = init
 		this.wantsSSR = wantsSSR
 		this.intercept = intercept
-		this.acc = initToVal(init)
+		this.acc = fromInit(init)
 	}
 	initial() {
-		return initToVal(this.init)
+		return fromInit(this.init)
 	}
 	put(v: T) {
 		const next = this.intercept(v, this.acc)
@@ -41,7 +41,7 @@ export class Store<T> {
 		}
 	}
 	ssr() {
-		return this.wantsSSR ? () => initToVal(this.init) : undefined
+		return this.wantsSSR ? () => fromInit(this.init) : undefined
 	}
 }
 

@@ -21,24 +21,24 @@ describe('tail', () => {
 	})
 	describe('put', () => {
 		it('defined', () => {
-			expect(focus.put(['P', 'Q'], sourceDefined)).toEqual(['a', 'P', 'Q'])
+			expect(focus.put(['P', 'Q'])(sourceDefined)).toEqual(['a', 'P', 'Q'])
 		})
 		it('empty', () => {
-			expect(focus.put(['P', 'Q'], sourceEmpty)).toEqual(['a', 'P', 'Q'])
+			expect(focus.put(['P', 'Q'])(sourceEmpty)).toEqual(['a', 'P', 'Q'])
 		})
 		it('undefined', () => {
-			expect(focus.put(['P', 'Q'], sourceUndefined)).toEqual([])
+			expect(focus.put(['P', 'Q'])(sourceUndefined)).toEqual([])
 		})
 	})
 	describe('remove', () => {
 		it('defined', () => {
-			expect(focus.command(REMOVE, sourceDefined)).toEqual(['a'])
+			expect(focus.command(REMOVE)(sourceDefined)).toEqual(['a'])
 		})
 		it('empty', () => {
-			expect(focus.command(REMOVE, sourceEmpty)).toEqual(['a'])
+			expect(focus.command(REMOVE)(sourceEmpty)).toEqual(['a'])
 		})
 		it('undefined', () => {
-			expect(focus.command(REMOVE, sourceUndefined)).toEqual(sourceUndefined)
+			expect(focus.command(REMOVE)(sourceUndefined)).toEqual(sourceUndefined)
 		})
 	})
 })

@@ -12,7 +12,7 @@ describe('reread', () => {
 	})
 	it('put', () => {
 		// TODO: which behavior is better?
-		expect(focus.put('', 'foo')).toBe('')
+		expect(focus.put('')('foo')).toBe('')
 		/* expect(focus.put('', 'foo')).toBe('foo') */
 	})
 })

@@ -181,14 +181,19 @@ export function prop<Key extends keyof O, O>(key: Key) {
 	})
 }
 
-function adjust(index: number, length: number) {
-	return length < 0 ? length + index : index
-}
 export function at<X>(index: number) {
 	return removable<X, X[]>({
 		getter: (xs) => xs.at(index),
-		setter: (x: X, xs) => (index < xs.length ? xs.with(index, x) : xs),
-		remover: (xs) => xs.toSpliced(adjust(index, xs.length)),
+		setter: (x: X, xs) => {
+			if (index >= xs.length) return xs
+			return xs.with(index, x)
+		},
+		remover: (xs) => {
+			if (index < 0) index += xs.length
+			if (index < 0) return xs
+			if (index >= xs.length) return xs
+			return xs.toSpliced(index, 1)
+		},
 	})
 }
 
@@ -205,16 +210,17 @@ export function find<X>(p: (x: X) => unknown) {
 		setter: (x: X, xs: X[]) => {
 			const i = xs.findIndex(p)
 			if (i < 0) return [...xs, x]
-			xs = [...xs]
-			xs[i] = x
-			return xs
+			return xs.with(i, x)
 		},
 		remover: (xs: X[]) => {
 			const i = xs.findIndex(p)
 			if (i < 0) return xs
-			const r = xs.slice(0, i)
-			r.push(...xs.slice(i + 1))
-			return r
+			return xs.toSpliced(i, 1)
+		},
+		mapper: (f, xs) => {
+			const i = xs.findIndex(p)
+			if (i < 0) return xs
+			return xs.with(i, f(xs[i]))
 		},
 	})
 }

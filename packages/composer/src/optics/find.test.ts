@@ -29,34 +29,28 @@ describe('find', () => {
 	describe('modify', () => {
 		it('defined', () => {
 			expect(
-				focus.modify(
-					(x) => ({
-						bar: `${x.bar} UPDATED`,
-					}),
-					sourceDefined,
-				),
+				focus.modify((x) => ({
+					bar: `${x.bar} UPDATED`,
+				}))(sourceDefined),
 			).toEqual([{ bar: 'baz' }, { bar: 'quux UPDATED' }, { bar: 'xyzzy' }])
 		})
 		it('undefined', () => {
 			expect(
-				focus.modify(
-					(x) => ({
-						bar: `${x.bar} UPDATED`,
-					}),
-					sourceUndefined,
-				),
+				focus.modify((x) => ({
+					bar: `${x.bar} UPDATED`,
+				}))(sourceUndefined),
 			).toEqual(sourceUndefined)
 		})
 	})
 	describe('remove', () => {
 		it('defined', () => {
-			expect(focus.command(REMOVE, sourceDefined)).toEqual([
+			expect(focus.command(REMOVE)(sourceDefined)).toEqual([
 				{ bar: 'baz' },
 				{ bar: 'xyzzy' },
 			])
 		})
 		it('undefined', () => {
-			expect(focus.command(REMOVE, sourceUndefined)).toEqual(sourceUndefined)
+			expect(focus.command(REMOVE)(sourceUndefined)).toEqual(sourceUndefined)
 		})
 	})
 	test('refine type', () => {

@@ -1,4 +1,5 @@
-import { first, fromInit, id, Init, isFunction, Monoid } from '../utils'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { fromInit, id, Init, isFunction, Monoid } from '../utils'
 
 function cmp<P, Q, R>(f: (p: P) => Q, g: (q: Q) => R): (p: P) => R {
 	if (f === id) return g as unknown as (p: P) => R
@@ -28,9 +29,12 @@ function forbidden<T, U>(_: T, _u: U): U {
 	throw new Error('this is a getter only optic, don not use a setter')
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function notImplemented(): any {
 	throw new Error('not implemented')
+}
+
+function apply<P, Q>(f: (p: P) => Q, p: P) {
+	return f(p)
 }
 
 function inert<T, U>(_: T, u: U) {
@@ -39,15 +43,16 @@ function inert<T, U>(_: T, u: U) {
 
 type Fold<Value, Acc> = (v: Value, acc: Acc) => Acc
 type Mapper<Part, Whole> = (f: (v: Part) => Part, b: Whole) => Whole
+type Setter<Part, Whole> = (p: Part, w: Whole) => Whole
 
 interface IOptic<Part, Whole, Fail, Command> {
 	getter: (a: Whole) => Part | Fail
 	refold: <Acc>(f: Fold<Part, Acc>) => Fold<Whole, Acc>
 	mapper: Mapper<Part, Whole>
 	isFaillure: (v: unknown) => v is Fail
-	setter: (v: Part, a: Whole) => Whole
+	setter: Setter<Part, Whole>
 	isCommand: (v: unknown) => v is Command
-	exec: (c: Command, a: Whole) => Whole
+	exec: Setter<Command, Whole>
 }
 
 interface IOpticArg<Part, Whole, Fail, Command> {
@@ -60,7 +65,7 @@ interface IOpticArg<Part, Whole, Fail, Command> {
 	exec: (c: Command, a: Whole) => Whole
 }
 
-function composeFaillure<F1, F2>(
+function cmpFaillure<F1, F2>(
 	f1: (v: unknown) => v is F1,
 	f2: (v: unknown) => v is F2,
 ): (v: unknown) => v is F1 | F2 {
@@ -71,6 +76,43 @@ function composeFaillure<F1, F2>(
 	throw new Error('unexpected faillure value')
 }
 /* c8 ignore stop */
+
+function newSetter<B, Part, Whole>(
+	thisSetter: Setter<Part, Whole>,
+	oSetter: Setter<B, Part>,
+): (b: B, part: Part, w: Whole) => Whole {
+	if (thisSetter === id) {
+		if (oSetter === id) return id as any
+		return (b, p) => oSetter(b, p) as any
+	}
+	if (oSetter === id) return (b, _p, w) => oSetter(b, w as any) as any
+	return (b, p, w) => thisSetter(oSetter(b, p), w)
+}
+
+function cmpSetter<B, Part, Whole>(
+	thisGetter: (a: Whole) => Part,
+	thisSetter: Setter<Part, Whole>,
+	oSetter: Setter<B, Part>,
+): Setter<B, Whole> {
+	if (thisSetter === id) {
+		if (oSetter === id) return id as any
+		if (thisGetter === id) return (b, w) => oSetter(b, w as any) as any
+		if (thisSetter === id)
+			return (b, w) => oSetter(b, thisGetter(w) as Part) as any
+	}
+	if (oSetter === id) return (b, w) => thisSetter(b as any, w) as any
+	if (thisGetter === id)
+		return (b, w) => thisSetter(oSetter(b, w as any), w) as any
+	return (b: B, w: Whole) => thisSetter(oSetter(b, thisGetter(w) as Part), w)
+}
+
+function cmpMapper<B, Part, Whole>(
+	thisMapper: Mapper<Part, Whole>,
+	oMapper: Mapper<B, Part>,
+): Mapper<B, Whole> {
+	if (thisMapper === apply) return oMapper as any
+	return (f, w) => thisMapper((p) => oMapper(f, p), w)
+}
 
 export class Optic<Part, Whole, Fail, Command>
 	implements IOptic<Part, Whole, Fail, Command>
@@ -91,68 +133,66 @@ export class Optic<Part, Whole, Fail, Command>
 		this.isCommand = o.isCommand
 		this.exec = o.exec
 	}
-	// TODO: optimize for setter === id
-	// TODO: optimize for mapper === apply
 	_compose<B, F2, C2>(o: IOpticArg<B, Part, F2, C2>) {
+		const exec: Setter<C2, Whole> =
+			o.exec === inert
+				? (inert as any)
+				: (c: C2, w: Whole) => this.mapper((p) => o.exec(c, p), w)
 		if (this.isFaillure === isNever) {
 			return new Optic<B, Whole, Fail | F2, C2>({
 				getter: cmp(this.getter as (w: Whole) => Part, o.getter),
 				refold: cmp(o.refold, this.refold),
-				mapper: (f, w) => this.mapper((p) => o.mapper(f, p), w),
-				isFaillure: composeFaillure(this.isFaillure, o.isFaillure),
-				setter:
-					this.setter === id
-						? (b: B, w: Whole) =>
-								o.setter(b, this.getter(w) as Part) as unknown as Whole
-						: (b: B, w: Whole) =>
-								this.setter(o.setter(b, this.getter(w) as Part), w),
+				mapper: cmpMapper(this.mapper, o.mapper),
+				isFaillure: cmpFaillure(this.isFaillure, o.isFaillure),
+				setter: cmpSetter(this.getter as any, this.setter, o.setter),
 				isCommand: o.isCommand,
-				exec: (c, w) => this.mapper((p) => o.exec(c, p), w),
+				exec,
 			})
 		}
-		const isFaillure = composeFaillure(this.isFaillure, o.isFaillure)
+		const isFaillure = cmpFaillure(this.isFaillure, o.isFaillure)
 		const refold = cmp(o.refold, this.refold)
-		const mapper: Mapper<B, Whole> = (f, w) =>
-			this.mapper((p) => o.mapper(f, p), w)
+		const ns = newSetter(this.setter, o.setter)
 		return new Optic<B, Whole, Fail | F2, C2>({
-			getter: (w: Whole) => {
-				const p = this.getter(w)
-				if (this.isFaillure(p)) return p
-				return o.getter(p)
-			},
+			getter:
+				o.getter === id
+					? (this.getter as any)
+					: (w: Whole) => {
+							const p = this.getter(w)
+							if (this.isFaillure(p)) return p
+							return o.getter(p)
+						},
 			refold,
-			mapper,
+			mapper: cmpMapper(this.mapper, o.mapper),
 			isFaillure,
 			setter: (b, w) => {
 				const t = this.getter(w)
 				if (this.isFaillure(t)) return w
-				return this.setter(o.setter(b, t), w)
+				return ns(b, t, w)
 			},
 			isCommand: o.isCommand,
-			exec: (c, w) => this.mapper((p) => o.exec(c, p), w),
+			exec,
 		})
 	}
 	view(a: Whole) {
 		return this.getter(a)
 	}
-	put(v: Part, a: Whole) {
-		return this.setter(v, a)
+	put(v: Part) {
+		return (a: Whole) => this.setter(v, a)
 	}
-	fold<Acc>(monoid: Monoid<Part, Acc>, w: Whole) {
-		const acc = fromInit(monoid.init)
+	fold<Acc>(monoid: Monoid<Part, Acc>) {
 		const fold = this.refold(monoid.fold)
-		return fold(w, acc)
+		return (w: Whole) => fold(w, fromInit(monoid.init))
 	}
-	command(c: Command, w: Whole) {
-		return this.exec(c, w)
+	command(c: Command) {
+		return (w: Whole) => this.exec(c, w)
 	}
-	modify(f: (p: Part) => Part, w: Whole) {
-		return this.mapper(f, w)
+	modify(f: (p: Part) => Part) {
+		return (w: Whole) => this.mapper(f, w)
 	}
 	update(arg: Command | Part | ((p: Part) => Part)) {
-		if (this.isCommand(arg)) return (w: Whole) => this.command(arg, w)
-		if (isFunction(arg)) return (w: Whole) => this.modify(arg, w)
-		return (w: Whole) => this.put(arg, w)
+		if (this.isCommand(arg)) return this.command(arg)
+		if (isFunction(arg)) return this.modify(arg)
+		return this.put(arg)
 	}
 	static eq<T, C>({
 		isCommand,
@@ -164,7 +204,7 @@ export class Optic<Part, Whole, Fail, Command>
 		return new Optic({
 			getter: id<T>,
 			refold: id,
-			mapper: (f, t) => f(t),
+			mapper: apply,
 			isFaillure: isNever,
 			setter: id,
 			isCommand,
@@ -206,19 +246,30 @@ export function traversal<B, V>({
 	}
 }
 
+function mkMapper<B, V>(
+	setter: (b: B, v: V) => V,
+	getter: (v: V) => B,
+): (f: (v: B) => B, v: V) => V {
+	if (setter === id && getter === id) return id as any
+	if (setter === id) return (f, v) => f(getter(v)) as any
+	if (getter === id) return (f, v) => setter(f(v as any), v) as any
+	return (f: (v: B) => B, v: V) => setter(f(getter(v)), v)
+}
+
 export function lens<B, V>({
 	getter,
 	setter,
 }: {
 	getter: (v: V) => B
-	setter: (b: B, v: V) => V
+	setter: Setter<B, V>
 }) {
 	return function <A, F, C>(o: Optic<V, A, F, C>) {
 		return o._compose<B, F, never>({
 			getter,
-      // TODO: optimize for getter === id and setter === id
-			refold: (fold) => (v, acc) => fold(getter(v), acc),
-			mapper: (f, v) => setter(f(getter(v)), v),
+			// TODO: optimize for getter === id and setter === id
+			refold: (fold) =>
+				getter === id ? (fold as any) : (v, acc) => fold(getter(v), acc),
+			mapper: mkMapper(setter, getter),
 			isFaillure: isNever,
 			setter,
 			isCommand: isNever,
@@ -232,7 +283,7 @@ export function optional<B, V>({
 	setter,
 }: {
 	getter: (v: V) => B | undefined
-	setter: (b: B, v: V) => V
+	setter: Setter<B, V>
 }) {
 	return function <A, F, C>(o: Optic<V, A, F, C>) {
 		return o._compose({
@@ -261,10 +312,12 @@ export function removable<B, V>({
 	getter,
 	setter,
 	remover,
+	mapper,
 }: {
 	getter: (v: V) => B | undefined
-	setter: (b: B, v: V) => V
+	setter: Setter<B, V>
 	remover: (v: V) => V
+	mapper?: Mapper<B, V>
 }) {
 	return function <A, F, C>(o: Optic<V, A, F, C>) {
 		return o._compose({
@@ -276,11 +329,13 @@ export function removable<B, V>({
 					if (b === undefined) return acc
 					return fold(b, acc)
 				},
-			mapper: (f, v) => {
-				const b = getter(v)
-				if (b === undefined) return v
-				return setter(f(b), v)
-			},
+			mapper:
+				mapper ??
+				((f, v) => {
+					const b = getter(v)
+					if (b === undefined) return v
+					return setter(f(b), v)
+				}),
 			isFaillure: isUndefined,
 			setter,
 			isCommand: isRemove,

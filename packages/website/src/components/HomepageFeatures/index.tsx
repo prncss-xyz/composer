@@ -4,6 +4,7 @@ import {
 	TbBatteryCharging,
 	TbCheckbox,
 	TbFeather,
+	TbHelmet,
 	TbLambda,
 } from 'react-icons/tb'
 
@@ -16,7 +17,6 @@ type FeatureItem = {
 }
 
 const FeatureList: FeatureItem[] = [
-	// lambda
 	{
 		title: 'Pure Functions',
 		Svg: TbLambda,
@@ -27,7 +27,6 @@ const FeatureList: FeatureItem[] = [
 			</>
 		),
 	},
-	// battery
 	{
 		title: 'Well known abstractions',
 		Svg: TbBatteryCharging,
@@ -35,17 +34,25 @@ const FeatureList: FeatureItem[] = [
 			<>Enjoy finite state machines, functional optics, and async primitives.</>
 		),
 	},
-	// feather
 	{
 		title: 'Lightweight',
 		Svg: TbFeather,
 		description: <>The library is tree-shakable and dependency-free.</>,
 	},
-	// gear
 	{
 		title: 'Opt-in integration',
 		Svg: TbCheckbox,
 		description: <>Use react integration with a separate package.</>,
+	},
+	{
+		title: 'Reliable',
+		Svg: TbHelmet,
+		description: (
+			<>
+				The library is written in TypeScript, with focus on the quality of the
+				typing. It is also well tested.
+			</>
+		),
 	},
 ]
 

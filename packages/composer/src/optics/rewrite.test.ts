@@ -11,6 +11,6 @@ describe('rewrite', () => {
 		expect(focus.view('foo')).toBe('foo')
 	})
 	it('put', () => {
-		expect(focus.put('foo', '')).toBe('FOO')
+		expect(focus.put('foo')('')).toBe('FOO')
 	})
 })

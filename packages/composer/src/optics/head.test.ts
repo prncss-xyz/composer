@@ -17,18 +17,18 @@ describe('head', () => {
 	})
 	describe('put', () => {
 		it('defined', () => {
-			expect(focus.put('A', sourceDefined)).toEqual(['A', 'a', 'b', 'c'])
+			expect(focus.put('A')(sourceDefined)).toEqual(['A', 'a', 'b', 'c'])
 		})
 		it('undefined', () => {
-			expect(focus.put('A', sourceUndefined)).toEqual(['A'])
+			expect(focus.put('A')(sourceUndefined)).toEqual(['A'])
 		})
 	})
 	describe('remove', () => {
 		it('defined', () => {
-			expect(focus.command(REMOVE, sourceDefined)).toEqual(['b', 'c'])
+			expect(focus.command(REMOVE)(sourceDefined)).toEqual(['b', 'c'])
 		})
 		it('undefined', () => {
-			expect(focus.command(REMOVE, sourceUndefined)).toEqual(sourceUndefined)
+			expect(focus.command(REMOVE)(sourceUndefined)).toEqual(sourceUndefined)
 		})
 	})
 })

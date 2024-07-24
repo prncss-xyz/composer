@@ -23,10 +23,10 @@ describe('when', () => {
 		describe('modify', () => {
 			const opposite = (x: number) => -x
 			it('defined', () => {
-				expect(focus.modify(opposite, source1)).toEqual({ foo: -5 })
+				expect(focus.modify(opposite)(source1)).toEqual({ foo: -5 })
 			})
 			it('undefined', () => {
-				expect(focus.modify(opposite, source2)).toEqual(source2)
+				expect(focus.modify(opposite)(source2)).toEqual(source2)
 			})
 		})
 	})
