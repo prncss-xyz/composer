@@ -2,7 +2,7 @@
 import { objForearch } from '@/utils'
 
 type Typed = {
-	type: PropertyKey
+	type: string
 }
 
 type G = Record<PropertyKey, (...props: never[]) => unknown>
@@ -18,11 +18,13 @@ export function machine<
 		(key, state) => (o.states as any)[state.type].getters[key](state),
 		({ type }) => type === 'final',
 	)
-	objForearch(o.states, (stateType, { on }) => {
+	objForearch(o.states, (stateType, desc) => {
+		if (stateType === 'final') return
+		const { on } = desc
 		objForearch(on, (eventType, transition) => {
 			machine.addTransition(eventType, (event, state) => {
 				if (state.type !== stateType) return undefined
-				const nextSourceState = transition!(event as any, state as any)
+				const nextSourceState = (transition as any)(event as any, state as any)
 				if (nextSourceState === undefined) return undefined
 				return nextSourceState
 			})
@@ -117,9 +119,16 @@ export type MachineSpec<
 					state: State,
 				) => States | undefined
 			}>
-			getters: {
-				[K in keyof Getters]: (s: States & { type: StateType }) => Getters[K]
-			}
 		}
-	}
+	} & (keyof Getters extends never
+		? Record<never, never>
+		: {
+				[StateType in States['type']]: {
+					getters: {
+						[K in keyof Getters]: (
+							s: States & { type: StateType },
+						) => Getters[K]
+					}
+				}
+			})
 }

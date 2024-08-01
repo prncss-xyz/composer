@@ -40,6 +40,11 @@ const preparationMachine = machine<
 				toWait: () => () => 2,
 			},
 		},
+		final: {
+			getters: {
+				toWait: () => () => 2,
+			},
+		},
 	},
 })
 
@@ -63,6 +68,11 @@ const espressoMachine = machine<Event, EspressoState, void, EspressoGetters>({
 			on: { next: () => ({ type: 'final', message: 'coffee ready' }) },
 			getters: {
 				toWait: () => () => 1,
+			},
+		},
+		final: {
+			getters: {
+				toWait: () => () => 2,
 			},
 		},
 	},

@@ -1,37 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { id, objForearch } from '@/utils'
+import { id } from '@/utils'
 
-import { Machine, MachineSpec } from '.'
+import { Machine } from '.'
 
 type Typed = {
-	type: PropertyKey
+	type: string
 }
 
 type G = Record<PropertyKey, (...props: never[]) => unknown>
-
-export function machine<
-	Event extends Typed,
-	State extends Typed,
-	Param = void,
-	Getters extends G = Record<never, never>,
->(o: MachineSpec<Param, Event, State, Getters>) {
-	const machine = new Machine<Event, State, Param, Getters>(
-		o.init,
-		(key, state) => (o.states as any)[state.type].getters[key](state),
-		({ type }) => type === 'final',
-	)
-	objForearch(o.states, (stateType, { on }) => {
-		objForearch(on, (eventType, transition) => {
-			machine.addTransition(eventType, (event, state) => {
-				if (state.type !== stateType) return undefined
-				const nextSourceState = transition!(event as any, state as any)
-				if (nextSourceState === undefined) return undefined
-				return nextSourceState
-			})
-		})
-	})
-	return machine
-}
 
 function isLeft(o: { type: PropertyKey }): o is { type: 'left' } {
 	return o.type === 'left'
