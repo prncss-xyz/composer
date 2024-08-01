@@ -21,44 +21,61 @@ describe('machine', () => {
 				type: 'stopped'
 				elapsed: number
 		  }
-		| {
-				type: 'final'
-				message: 'done'
-		  }
 
-	const timerMachine = machine<TimerState, TimerEvent>({
+	type TimerGetters = {
+		count: (now: number) => number
+	}
+
+	const timerMachine = machine<TimerEvent, TimerState, void, TimerGetters>({
 		init: () => ({ type: 'stopped', elapsed: 0 }),
 		states: {
 			running: {
-				toggle: ({ now }, { since }) => ({
-					type: 'stopped',
-					elapsed: now - since,
-				}),
-				reset: ({ now }) => ({
-					type: 'running',
-					since: now,
-				}),
-				bye: () => ({ type: 'final', message: 'done' }),
+				on: {
+					toggle: ({ now }, { since }) => ({
+						type: 'stopped',
+						elapsed: now - since,
+					}),
+					reset: ({ now }) => ({
+						type: 'running',
+						since: now,
+					}),
+				},
+				getters: {
+					count:
+						({ since }) =>
+						(now) =>
+							now - since,
+				},
 			},
 			stopped: {
-				toggle: ({ now }, { elapsed }) => ({
-					type: 'running',
-					since: now - elapsed,
-				}),
-				reset: () => ({
-					type: 'stopped',
-					elapsed: 0,
-				}),
-				bye: () => ({ type: 'final', message: 'done' }),
+				on: {
+					toggle: ({ now }, { elapsed }) => ({
+						type: 'running',
+						since: now - elapsed,
+					}),
+					reset: () => ({
+						type: 'stopped',
+						elapsed: 0,
+					}),
+				},
+				getters: {
+					count:
+						({ elapsed }) =>
+						() =>
+							elapsed,
+				},
 			},
 		},
 	})
 
 	it('should start running', () => {
-		let state: TimerState = timerMachine.init()
+		let state = timerMachine.init()
+		const count = timerMachine.getter('count')
 		state = timerMachine.send({ type: 'toggle', now: 1 }, state)
 		expect(state).toEqual({ type: 'running', since: 1 })
+		expect(count(state)(3)).toBe(2)
 		state = timerMachine.send({ type: 'toggle', now: 3 }, state)
+		expect(count(state)(3)).toBe(2)
 		expect(state).toEqual({ type: 'stopped', elapsed: 2 })
 		state = timerMachine.send({ type: 'reset', now: 6 }, state)
 		expect(state).toEqual({ type: 'stopped', elapsed: 0 })

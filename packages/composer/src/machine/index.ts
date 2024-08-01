@@ -1,129 +1,125 @@
-type Key = string | number | symbol
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { objForearch } from '@/utils'
+
 type Typed = {
-	type: Key
+	type: PropertyKey
 }
 
-// TODO: test with exemple from xState
-// TODO: parallel states
+type G = Record<PropertyKey, (...props: never[]) => unknown>
 
-function isFinal<State extends Typed>(
-	state: State,
-): state is State & { type: 'final' } {
-	return state.type === 'final'
-}
-
-export type ChildState<K extends Key, State extends Typed> = {
-	type: K
-	state: State
-}
-
-export type ChildMachine<
-	K extends Key,
+export function machine<
 	Event extends Typed,
 	State extends Typed,
-	Param,
-> = Machine<Event, { type: K; state: State }, Param>
+	Param = void,
+	Getters extends G = Record<never, never>,
+>(o: MachineSpec<Param, Event, State, Getters>) {
+	const machine = new Machine<Event, State, Param, Getters>(
+		o.init,
+		(key, state) => (o.states as any)[state.type].getters[key](state),
+		({ type }) => type === 'final',
+	)
+	objForearch(o.states, (stateType, { on }) => {
+		objForearch(on, (eventType, transition) => {
+			machine.addTransition(eventType, (event, state) => {
+				if (state.type !== stateType) return undefined
+				const nextSourceState = transition!(event as any, state as any)
+				if (nextSourceState === undefined) return undefined
+				return nextSourceState
+			})
+		})
+	})
+	return machine
+}
 
-class Machine<Event extends Typed, State extends Typed, Param> {
+export class Machine<
+	Event extends Typed,
+	State extends Typed,
+	Param = void,
+	Getters extends G = Record<never, never>,
+> {
 	init: (param: Param) => State
-	transitions: Partial<
-		Record<Event['type'], (event: Event, state: State) => State | undefined>
-	>
-	constructor({ init }: { init: (param: Param) => State }) {
+	_getters: <Key extends keyof Getters>(key: Key, state: State) => Getters[Key]
+	isFinal: (state: State) => boolean
+	transitions: Map<
+		Event['type'],
+		(event: Event, state: State) => State | undefined
+	> = new Map()
+	constructor(
+		init: (param: Param) => State,
+		_getters: <Key extends keyof Getters>(
+			key: Key,
+			state: State,
+		) => Getters[Key],
+		isFinal: (state: State) => boolean,
+	) {
 		this.init = init
-		this.transitions = {}
+		this._getters = _getters
+		this.isFinal = isFinal
+	}
+	getter<Key extends keyof Getters>(key: Key): (state: State) => Getters[Key] {
+		return (state: State) => this._getters(key, state)
 	}
 	send(event: Event, state: State) {
-		return (
-			this.transitions[event.type as Event['type']]?.(event, state) ?? state
-		)
+		return this._send(event, state) ?? state
 	}
-	send_(event: Event, state: State) {
-		return this.transitions[event.type as Event['type']]?.(event, state)
+	_send(event: Event, state: State) {
+		return this.transitions.get(event.type as Event['type'])?.(event, state)
 	}
 	// last added transition has precedence
 	// transition is responsible for checking the state type
-	addTransition<E extends Event, ET extends E['type']>(
-		eventType: ET,
-		transition: (e: E, s: State) => State | undefined,
+	addTransition(
+		eventType: Event['type'],
+		transition: (e: Event, s: State) => State | undefined,
 	) {
-		const t = this.transitions[eventType]
-		this.transitions[eventType] = t
-			? (e: Event, s: State) => transition(e as E, s) ?? t(e, s)
-			: (transition as (e: Event, s: State) => State | undefined)
+		const t = this.transitions.get(eventType)
+		this.transitions.set(
+			eventType,
+			t ? (e: Event, s: State) => transition(e, s) ?? t(e, s) : transition,
+		)
 	}
-	addChildTransition<
-		E extends Event,
-		K extends E['type'],
-		ST extends State['type'],
-	>(eventType: K, transition: (e: E, s: State) => State | undefined, key: ST) {
-		this.addTransition(eventType, (e, s) => {
-			if (s.type !== key) return undefined
-			return transition(e as E, s)
-		})
+	addSubtransition<Substate>(
+		eventType: Event['type'],
+		transition: (e: Event, s: Substate) => Substate | undefined,
+		{
+			getter,
+			setter,
+		}: {
+			getter: (s: State) => Substate | undefined
+			setter: (v: Substate, s: State) => State
+		},
+	) {
+		const t: (e: Event, s: State) => State | undefined = (e, s) => {
+			const t = getter(s)
+			if (t === undefined) return undefined
+			const u = transition(e, t)
+			if (u === undefined) return undefined
+			return setter(u, s)
+		}
+		this.addTransition(eventType, t)
 	}
+}
 
-	child<K extends Key>(key: K) {
-		const send = this.send_
-		return function <ParentState extends State>(
-			onDone?: (state: State & { type: 'final' }) => ParentState | undefined,
-		) {
-			return function (event: Event, { state }: ChildState<K, State>) {
-				const res = send(event, state)
-				if (res === undefined) return undefined
-				if (onDone && isFinal(res)) return onDone(res)
-				return { child: key, state }
+export type MachineSpec<
+	Param,
+	Events extends Typed,
+	States extends Typed,
+	Getters extends Record<PropertyKey, (...props: never[]) => unknown>,
+> = {
+	init: (param: Param) => States
+	states: {
+		[StateType in Exclude<States['type'], 'final'>]: {
+			on: Partial<{
+				[EventType in Events['type']]: <
+					Event extends Events & { type: EventType },
+					State extends States & { type: StateType },
+				>(
+					event: Event,
+					state: State,
+				) => States | undefined
+			}>
+			getters: {
+				[K in keyof Getters]: (s: States & { type: StateType }) => Getters[K]
 			}
 		}
 	}
-	toChild<K extends Key>(key: K, param: Param) {
-		return { child: key, state: this.init(param) }
-	}
-}
-
-type Transitions<Events extends Typed, States extends Typed> = {
-	[StateType in Exclude<States['type'], 'final'>]: Partial<{
-		[EventType in Events['type']]: <
-			Event extends Events & { type: EventType },
-			State extends States & { type: StateType },
-		>(
-			event: Event,
-			state: State,
-		) => States | undefined
-	}>
-}
-
-export function machine<
-	State extends Typed,
-	Event extends Typed,
-	Param = void,
->({
-	init,
-	states,
-}: {
-	init: (param: Param) => State
-	states: Transitions<Event, State>
-}) {
-	const m = new Machine<Event, State, Param>({
-		init: init,
-	})
-	// PERF: could index on state type
-	for (const entry of Object.entries(states)) {
-		const [stateType, stateTransitions] = entry as [
-			Event['type'],
-			Partial<
-				Record<Event['type'], (event: Event, state: State) => State | undefined>
-			>,
-		]
-		for (const entry_ of Object.entries(stateTransitions)) {
-			const [eventType, cb] = entry_ as [
-				Event['type'],
-				(event: Event, state: State) => State | undefined,
-			]
-			m.addTransition(eventType, (e, s) =>
-				s.type === stateType ? cb(e, s) : undefined,
-			)
-		}
-	}
-	return m
 }

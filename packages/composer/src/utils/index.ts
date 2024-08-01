@@ -77,3 +77,12 @@ export function collect2<V>(): Monoid2<V, V[], number> {
 		},
 	}
 }
+
+export function objForearch<O extends object, K extends keyof O>(
+	o: O,
+	f: <L extends K>(k: K, v: O[L]) => void,
+) {
+	for (const [k, v] of Object.entries(o)) {
+		f(k as K, v as O[K])
+	}
+}
