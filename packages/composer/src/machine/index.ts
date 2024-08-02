@@ -35,7 +35,7 @@ export function machine<
 
 export class Machine<
 	Event extends Typed,
-	State extends Typed,
+	State,
 	Param = void,
 	Getters extends G = Record<never, never>,
 > {
@@ -61,7 +61,12 @@ export class Machine<
 	getter<Key extends keyof Getters>(key: Key): (state: State) => Getters[Key] {
 		return (state: State) => this._getters(key, state)
 	}
-	send(event: Event, state: State) {
+	send<K extends string = ''>(
+		event: Event | ({ type: K } extends Event ? K : never),
+		state: State,
+	) {
+		event =
+			typeof event === 'string' ? ({ type: event } as unknown as Event) : event
 		return this._send(event, state) ?? state
 	}
 	_send(event: Event, state: State) {

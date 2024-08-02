@@ -96,14 +96,14 @@ describe('child machine', () => {
 		let state = coffeeMachine.init()
 		const toWait = coffeeMachine.getter('toWait')
 		expect(state).toEqual({ type: 'left', state: { type: 'weighting' } })
-		expect(toWait(state)).toBe(3)
-		state = coffeeMachine.send({ type: 'next' }, state)
+		expect(toWait(state)()).toBe(3)
+		state = coffeeMachine.send('next', state)
 		expect(state).toEqual({ type: 'left', state: { type: 'grinding' } })
-		expect(toWait(state)).toBe(2)
-		state = coffeeMachine.send({ type: 'next' }, state)
+		expect(toWait(state)()).toBe(2)
+		state = coffeeMachine.send('next', state)
 		expect(state).toEqual({ type: 'right', state: { type: 'brewing' } })
-		expect(toWait(state)).toBe(1)
-		state = coffeeMachine.send({ type: 'next' }, state)
+		expect(toWait(state)()).toBe(1)
+		state = coffeeMachine.send('next', state)
 		expect(state).toEqual({
 			type: 'right',
 			state: { type: 'final', message: 'coffee ready' },

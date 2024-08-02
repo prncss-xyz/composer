@@ -15,8 +15,8 @@ function isLeft(o: { type: PropertyKey }): o is { type: 'left' } {
 
 export function sumMachine<
 	Event extends Typed,
-	LState extends Typed,
-	RState extends Typed,
+	LState,
+	RState,
 	LParam = void,
 	RParam = void,
 	RGetters extends G = Record<never, never>,
@@ -37,8 +37,8 @@ export function sumMachine<
 		init,
 		(key, state) => {
 			return isLeft(state)
-				? (left._getters as any)[key](state.state)
-				: (right._getters as any)[key](state.state)
+				? (left._getters as any)(key, state.state)
+				: (right._getters as any)(key, state.state)
 		},
 		(state) =>
 			isLeft(state) ? left.isFinal(state.state) : right.isFinal(state.state),
