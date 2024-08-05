@@ -1,4 +1,3 @@
-import { Machine } from '../machine'
 import { id, Init, isFunction } from '../utils'
 
 type Reducer<T, Acc> = (t: T, acc: Acc) => Acc | undefined
@@ -40,24 +39,6 @@ export class ReducerStore<T, Acc, Param> extends Subcribable<Acc> {
 		if (next === undefined || next === this.acc) return
 		this.acc = next
 		this.notify()
-	}
-}
-
-export class MachineStore<
-	Param,
-	Events extends { type: string },
-	State,
-	Getters extends Record<PropertyKey, (...props: never[]) => unknown>,
-> extends ReducerStore<Events, State, Param> {
-	_getters: <Key extends keyof Getters>(key: Key, state: State) => Getters[Key]
-	constructor(machine: Machine<Events, State, Param, Getters>, param: Param) {
-		const reducer = machine.send.bind(machine)
-		const init = machine.init.bind(machine)
-		super(reducer, param, init)
-    this._getters = machine._getters
-	}
-	getter<Key extends keyof Getters>(key: Key): (state: State) => Getters[Key] {
-		return (state: State) => this._getters(key, state)
 	}
 }
 

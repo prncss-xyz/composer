@@ -1,55 +1,45 @@
 import { machine } from '../../composer/dist/machine'
 
-type TimerEvent =
-	| { type: 'toggle'; now: number }
-	| { type: 'reset'; now: number }
+type Event = { type: 'toggle'; now: number } | { type: 'reset'; now: number }
 
-export type TimerState =
+export type State =
 	| { type: 'running'; since: number }
 	| { type: 'stopped'; elapsed: number }
 
-type TimerGetters = { count: (now: number) => number }
+type Context = { count: (now: number) => number }
 
-export const timerMachine = machine<TimerEvent, TimerState, void, TimerGetters>(
-	{
-		init: () => ({ type: 'stopped', elapsed: 0 }),
-		states: {
-			running: {
-				on: {
-					toggle: ({ now }, { since }) => ({
-						type: 'stopped',
-						elapsed: now - since,
-					}),
-					reset: ({ now }) => ({
-						type: 'running',
-						since: now,
-					}),
-				},
-				getters: {
-					count:
-						({ since }) =>
-						(now) =>
-							now - since,
-				},
+export const timerMachine = machine<Event, State, Context>({
+	init: () => ({ type: 'stopped', elapsed: 0 }),
+	states: {
+		running: {
+			events: {
+				toggle: ({ now }, _, { count }) => ({
+					type: 'stopped',
+					elapsed: count(now),
+				}),
+				reset: ({ now }) => ({
+					type: 'running',
+					since: now,
+				}),
 			},
-			stopped: {
-				on: {
-					toggle: ({ now }, { elapsed }) => ({
-						type: 'running',
-						since: now - elapsed,
-					}),
-					reset: () => ({
-						type: 'stopped',
-						elapsed: 0,
-					}),
-				},
-				getters: {
-					count:
-						({ elapsed }) =>
-						() =>
-							elapsed,
-				},
+			context: ({ since }) => ({
+				count: (now: number) => now - since,
+			}),
+		},
+		stopped: {
+			events: {
+				toggle: ({ now }, _, { count }) => ({
+					type: 'running',
+					since: now - count(now),
+				}),
+				reset: () => ({
+					type: 'stopped',
+					elapsed: 0,
+				}),
 			},
+			context: ({ elapsed }) => ({
+				count: () => elapsed,
+			}),
 		},
 	},
-)
+})

@@ -5,33 +5,30 @@ type Typed = {
 	type: string
 }
 
-type G = Record<PropertyKey, (...props: never[]) => unknown>
-
 export function machine<
 	Event extends Typed,
 	State extends Typed,
+	Context,
 	Param = void,
-	Getters extends G = Record<never, never>,
->(o: MachineSpec<Param, Event, State, Getters>) {
-	const machine = new Machine<Event, State, Param, Getters>(
-		o.init,
-		(key, state) => (o.states as any)[state.type].getters[key](state),
-		({ type }) => type === 'final',
+>(o: MachineSpec<Event, State, Context, Param>) {
+	function withContext(s: State) {
+		return { state: s, context: o.states[s.type as State['type']].context(s) }
+	}
+	const machine = new Machine<Event, { state: State; context: Context }, Param>(
+		(p: Param) => withContext(o.init(p)),
+		({ state }) => state.type === 'final',
 	)
 	objForearch(o.states, (stateType, desc) => {
 		if (stateType === 'final') return
-		const { on } = desc
-		objForearch(on, (eventType, transition) => {
+		const { events } = desc
+		objForearch(events, (eventType, transition) => {
 			machine.addTransition(
 				eventType,
-				(event, state) => {
+				(event, { state, context }) => {
 					if (state.type !== stateType) return undefined
-					const nextSourceState = (transition as any)(
-						event as any,
-						state as any,
-					)
+					const nextSourceState = transition!(event as any, state, context)
 					if (nextSourceState === undefined) return undefined
-					return nextSourceState
+					return withContext(nextSourceState)
 				},
 				false,
 			)
@@ -40,14 +37,8 @@ export function machine<
 	return machine
 }
 
-export class Machine<
-	Event extends Typed,
-	State,
-	Param = void,
-	Getters extends G = Record<never, never>,
-> {
+export class Machine<Event extends Typed, State, Param = void> {
 	init: (param: Param) => State
-	_getters: <Key extends keyof Getters>(key: Key, state: State) => Getters[Key]
 	isFinal: (state: State) => boolean
 	transitions: Map<
 		Event['type'],
@@ -55,18 +46,10 @@ export class Machine<
 	> = new Map()
 	constructor(
 		init: (param: Param) => State,
-		_getters: <Key extends keyof Getters>(
-			key: Key,
-			state: State,
-		) => Getters[Key],
 		isFinal: (state: State) => boolean,
 	) {
 		this.init = init
-		this._getters = _getters
 		this.isFinal = isFinal
-	}
-	getter<Key extends keyof Getters>(key: Key): (state: State) => Getters[Key] {
-		return (state: State) => this._getters(key, state)
 	}
 	send<K extends string = ''>(
 		event: Event | ({ type: K } extends Event ? K : never),
@@ -120,34 +103,31 @@ export class Machine<
 	}
 }
 
+type Final = 'reject' | 'resolve'
+
 export type MachineSpec<
+	Event extends Typed,
+	State extends Typed,
+	Context,
 	Param,
-	Events extends Typed,
-	States extends Typed,
-	Getters extends Record<PropertyKey, (...props: never[]) => unknown>,
 > = {
-	init: (param: Param) => States
+	init: (param: Param) => State
 	states: {
-		[StateType in Exclude<States['type'], 'final'>]: {
-			on: Partial<{
-				[EventType in Events['type']]: <
-					Event extends Events & { type: EventType },
-					State extends States & { type: StateType },
+		[StateType in Exclude<State['type'], Final>]: {
+			events: Partial<{
+				[EventType in Event['type']]: <
+					E extends Event & { type: EventType },
+					S extends State & { type: StateType },
 				>(
-					event: Event,
-					state: State,
-				) => States | undefined
+					event: E,
+					state: S,
+					context: Context,
+				) => State | undefined
 			}>
 		}
-	} & (keyof Getters extends never
-		? Record<never, never>
-		: {
-				[StateType in States['type']]: {
-					getters: {
-						[K in keyof Getters]: (
-							s: States & { type: StateType },
-						) => Getters[K]
-					}
-				}
-			})
+	} & {
+		[StateType in State['type']]: {
+			context: <S extends State & { type: StateType }>(state: S) => Context
+		}
+	}
 }

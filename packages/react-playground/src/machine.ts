@@ -11,26 +11,24 @@ type Typed = {
 	type: string
 }
 
-export function createMachine<
-	Param,
-	Events extends Typed,
-	States extends Typed,
-	Getters extends Record<PropertyKey, (...props: never[]) => unknown>,
->(machine: Machine<Events, States, Param, Getters>, param: Param) {
+export function createMachine<State, Event extends Typed, Param>(
+	machine: Machine<Event, State, Param>,
+	param: Param,
+) {
 	const reducer = machine.send.bind(machine)
 	const init = machine.init.bind(machine)
-	return new ReducerStore<Events, States, Param>(reducer, param, init)
+	return new ReducerStore<Event, State, Param>(reducer, param, init)
 }
 
-export function machineHooks<Param, Events extends Typed, States>(
-	store: ReducerStore<Events, States, Param>,
+export function machineHooks<Event extends Typed, State, Context, Param>(
+	store: ReducerStore<Event, State & Context, Param>,
 ) {
 	return {
 		get: <U>(
-			select: (t: States) => U,
+			select: (t: State) => U,
 			areEqual: (a: U, b: U) => boolean = Object.is,
 		) => useReducerSelect(store, select, areEqual),
-		send: (event: Events | (() => Events)) => useReducerSend(store, event),
+		send: (event: Event | (() => Event)) => useReducerSend(store, event),
 	}
 }
 
@@ -87,5 +85,3 @@ export const useMachine = {
 	send: useReducerSend,
 	get: useReducerSelect,
 }
-
-

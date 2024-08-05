@@ -9,7 +9,7 @@ function Toggle() {
 		type: 'toggle',
 		now: clock.peek(),
 	}))
-	const running = useMachine.get(timer, (state) => state.type === 'running')
+	const running = useMachine.get(timer, ({ state }) => state.type === 'running')
 	return <button onClick={toggle}>{running ? 'Stop' : 'Start'}</button>
 }
 
@@ -22,11 +22,8 @@ function Reset() {
 }
 
 function Counter() {
-	const state = useMachine.get(timer, (state) => state)
-	const seconds = useClock((now) => {
-		const count = state.type === 'running' ? now - state.since : state.elapsed
-		return Math.floor(count / 1000)
-	})
+	const count = useMachine.get(timer, ({ context }) => context.count)
+	const seconds = useClock((now) => Math.floor(count(now) / 1000))
 	return <div>{seconds}</div>
 }
 
