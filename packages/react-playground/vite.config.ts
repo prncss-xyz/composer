@@ -1,7 +1,10 @@
-import path from 'node:path'
+import { resolve } from 'node:path'
+import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
 
+// https://vitejs.dev/config/
 export default defineConfig({
+	plugins: [react()],
 	test: {
 		include: ['src/**/*.test.{js,ts,jsx,tsx}'],
 		coverage: {
@@ -11,7 +14,7 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			'@': path.resolve(__dirname, './src'),
+			'@': resolve(__dirname, './src'),
 		},
 	},
 })

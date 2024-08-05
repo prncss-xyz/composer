@@ -22,12 +22,19 @@ export function machine<
 		if (stateType === 'final') return
 		const { on } = desc
 		objForearch(on, (eventType, transition) => {
-			machine.addTransition(eventType, (event, state) => {
-				if (state.type !== stateType) return undefined
-				const nextSourceState = (transition as any)(event as any, state as any)
-				if (nextSourceState === undefined) return undefined
-				return nextSourceState
-			})
+			machine.addTransition(
+				eventType,
+				(event, state) => {
+					if (state.type !== stateType) return undefined
+					const nextSourceState = (transition as any)(
+						event as any,
+						state as any,
+					)
+					if (nextSourceState === undefined) return undefined
+					return nextSourceState
+				},
+				false,
+			)
 		})
 	})
 	return machine
@@ -77,11 +84,17 @@ export class Machine<
 	addTransition(
 		eventType: Event['type'],
 		transition: (e: Event, s: State) => State | undefined,
+		inclusive: boolean,
 	) {
 		const t = this.transitions.get(eventType)
 		this.transitions.set(
 			eventType,
-			t ? (e: Event, s: State) => transition(e, s) ?? t(e, s) : transition,
+			t
+				? (e: Event, s: State) =>
+						inclusive
+							? t(e, transition(e, s) ?? s)
+							: (transition(e, s) ?? t(e, s))
+				: transition,
 		)
 	}
 	addSubtransition<Substate>(
@@ -94,6 +107,7 @@ export class Machine<
 			getter: (s: State) => Substate | undefined
 			setter: (v: Substate, s: State) => State
 		},
+		inclusive: boolean,
 	) {
 		const t: (e: Event, s: State) => State | undefined = (e, s) => {
 			const t = getter(s)
@@ -102,7 +116,7 @@ export class Machine<
 			if (u === undefined) return undefined
 			return setter(u, s)
 		}
-		this.addTransition(eventType, t)
+		this.addTransition(eventType, t, inclusive)
 	}
 }
 

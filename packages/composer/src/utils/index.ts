@@ -1,6 +1,3 @@
-import { eqWithReset } from '../optics/core'
-import { Store } from '../stores'
-
 export * from './flow'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -17,10 +14,11 @@ export type Init<T> = T | (() => T)
 export function fromInit<T>(init: Init<T>): T {
 	return isFunction(init) ? init() : init
 }
-
+/* 
 export function storeToOptic<V>(store: Store<V>) {
 	return eqWithReset(() => store.initial())
 }
+*/
 
 export type XF = <Value, Acc>() => {
 	init: Acc

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { Machine } from '.'
 
 type Typed = {
@@ -7,11 +8,7 @@ type Typed = {
 
 type G = Record<PropertyKey, (...props: never[]) => unknown>
 
-function isLeft(o: { type: PropertyKey }): o is { type: 'left' } {
-	return o.type === 'left'
-}
-
-export function sumMachine<
+export function historyMachine<
 	Event extends Typed,
 	LState,
 	RState,
@@ -23,22 +20,24 @@ export function sumMachine<
 >(
 	left: Machine<Event, LState, LParam, LGetters>,
 	right: Machine<Event, RState, RParam, RGetters>,
-	init: (p: Param) => SumState<LState, RState>,
-	reset?: (s: SumState<LState, RState>) => SumState<LState, RState>,
+	init: (p: Param) => HistoryState<LState, RState>,
+	reset?: (s: HistoryState<LState, RState>) => HistoryState<LState, RState>,
 ) {
-	const isFinal = (state: SumState<LState, RState>) =>
-		isLeft(state) ? left.isFinal(state.state) : right.isFinal(state.state)
+	const isFinal = (state: HistoryState<LState, RState>) =>
+		state.type === 'left'
+			? left.isFinal(state.left)
+			: right.isFinal(state.right)
 	const machine = new Machine<
 		Event,
-		SumState<LState, RState>,
+		HistoryState<LState, RState>,
 		Param,
-		SumGetters<LGetters, RGetters>
+		HistoryGetters<LGetters, RGetters>
 	>(
 		init,
 		(key, state) => {
-			return isLeft(state)
-				? (left._getters as any)(key, state.state)
-				: (right._getters as any)(key, state.state)
+			return state.type === 'left'
+				? (left._getters as any)(key, state.left)
+				: (right._getters as any)(key, state.right)
 		},
 		(state) => {
 			if (isFinal(state)) {
@@ -55,10 +54,9 @@ export function sumMachine<
 			{
 				getter: (s) => {
 					if (reset && machine.isFinal(s)) s = reset(s)
-					if (s.type == 'left') return s.state
-					return undefined
+					return s?.left
 				},
-				setter: (state) => ({ type: 'left', state }),
+				setter: (left, state) => ({ ...state, left, type: 'left' }),
 			},
 			false,
 		)
@@ -70,10 +68,9 @@ export function sumMachine<
 			{
 				getter: (s) => {
 					if (reset && machine.isFinal(s)) s = reset(s)
-					if (s.type == 'right') return s.state
-					return undefined
+					return s?.right
 				},
-				setter: (state) => ({ type: 'right', state }),
+				setter: (right, state) => ({ ...state, right, type: 'right' }),
 			},
 			false,
 		)
@@ -81,12 +78,12 @@ export function sumMachine<
 	return machine
 }
 
-type SumState<L, R> = { type: 'left'; state: L } | { type: 'right'; state: R }
-type SumGetter<L, R> = L extends (...props: infer AP) => infer AR
+type HistoryState<L, R> = { left: L; right: R; type: 'left' | 'right' }
+type HistoryGetter<L, R> = L extends (...props: infer AP) => infer AR
 	? R extends (...props: infer AQ) => infer QR
 		? (...props: AP & AQ) => AR | QR
 		: never
 	: never
-type SumGetters<L extends G, R extends G> = {
-	[K in keyof L & keyof R]: SumGetter<L[K], R[K]>
+type HistoryGetters<L extends G, R extends G> = {
+	[K in keyof L & keyof R]: HistoryGetter<L[K], R[K]>
 }

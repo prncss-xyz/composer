@@ -1,10 +1,9 @@
 import { resolve } from 'path'
-import { defineConfig } from 'vite'
 import dts from 'vite-plugin-dts'
+import { defineConfig } from 'vitest/config'
 
-// https://vitejs.dev/config/
 export default defineConfig({
-	plugins: [dts({ include: ['src'] })],
+	plugins: [dts({ include: ['src'], rollupTypes: true })],
 	build: {
 		copyPublicDir: false,
 		sourcemap: true,
@@ -19,6 +18,13 @@ export default defineConfig({
 			name: 'composer',
 			formats: ['es'],
 		},
+	},
+	test: {
+		include: ['src/**/*.test.{js,ts,jsx,tsx}'],
+		coverage: {
+			reporter: ['text', 'json', 'clover', 'lcov'],
+		},
+		globals: true,
 	},
 	resolve: {
 		alias: {
