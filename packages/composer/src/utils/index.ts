@@ -14,6 +14,9 @@ export function id<T>(t: T) {
 }
 
 export type Init<T> = T | (() => T)
+export type Reducer<Event, Acc> = (t: Event, acc: Acc) => Acc
+export type Updater<T> = T | ((p: T) => T)
+export type AreEqual<T> = (a: T, b: T) => unknown
 
 export function fromInit<T>(init: Init<T>): T {
 	return isFunction(init) ? init() : init

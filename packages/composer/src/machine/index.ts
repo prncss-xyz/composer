@@ -6,9 +6,15 @@ type Typed = {
 }
 
 // when event is just { type: string }, we can use string as shorthand
-export type Sendable<T extends Typed> =
+export type Sendable<T> =
 	| T
 	| (T extends { type: infer U } ? ({ type: U } extends T ? U : never) : never)
+
+function regularize<Event>(event: Sendable<Event>): Event {
+	return (
+		typeof event === 'string' ? ({ type: event } as unknown) : event
+	) as Event
+}
 
 export class Machine<
 	Event extends Typed,
@@ -30,9 +36,7 @@ export class Machine<
 		this.isFinal = isFinal
 	}
 	send(event: Sendable<Event>, state: State) {
-		event =
-			typeof event === 'string' ? ({ type: event } as unknown as Event) : event
-		return this._send(event, state) ?? state
+		return this._send(regularize(event), state) ?? state
 	}
 	_send(event: Event, state: State) {
 		return this.transitions.get(event.type as Event['type'])?.(event, state)

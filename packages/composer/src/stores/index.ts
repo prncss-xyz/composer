@@ -1,19 +1,17 @@
-import { fromInit, id, Init, isFunction } from '../utils'
+import { fromInit, id, Init, isFunction, Reducer } from '../utils'
 
-type Reducer<T, Acc> = (t: T, acc: Acc) => Acc | undefined
-
-export class Subcribable<Acc, T> {
+export class Store<Event, Acc> {
 	protected acc: Acc
-	private reducer: Reducer<T, Acc>
+	private reducer: Reducer<Event, Acc>
 	// TODO: WeakSet
 	private subscribers: Set<(t: Acc) => void> = new Set()
-	constructor(init: Acc, reducer: Reducer<T, Acc>) {
+	constructor(init: Acc, reducer: Reducer<Event, Acc>) {
 		this.acc = init
 		this.reducer = reducer
 	}
-	put(v: T) {
+	put(v: Event) {
 		const next = this.reducer(v, this.acc)
-		if (next === undefined || next === this.acc) return
+		if (Object.is(next, this.acc)) return
 		this.acc = next
 		this.notify()
 	}
@@ -33,15 +31,15 @@ export class Subcribable<Acc, T> {
 	}
 }
 
-export class ReducerStore<
-	T,
+export class MachineStore<
+	Event,
 	Acc,
 	Param,
 	Final extends Acc = never,
-> extends Subcribable<Acc, T> {
+> extends Store<Event, Acc> {
 	public isFinal: (acc: Acc) => acc is Final
 	constructor(
-		reducer: Reducer<T, Acc>,
+		reducer: Reducer<Event, Acc>,
 		initalArg: Param,
 		init: (p: Param) => Acc,
 		isFinal: (acc: Acc) => acc is Final,
@@ -51,7 +49,7 @@ export class ReducerStore<
 	}
 }
 
-export class StateStore<T> extends Subcribable<T, T> {
+export class AtomStore<T> extends Store<T, T> {
 	constructor(init: Init<T>, reducer: Reducer<T, T> = id) {
 		super(fromInit(init), reducer)
 	}

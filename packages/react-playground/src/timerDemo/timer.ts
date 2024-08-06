@@ -1,6 +1,8 @@
-import { machine } from '../../composer/dist/machine'
+import { machine } from '../../../composer/dist/machine'
 
-type Event = { type: 'toggle'; now: number } | { type: 'reset'; now: number }
+type Event =
+	| { type: 'toggle'; now: number }
+	| { type: 'reset'; now: number }
 
 export type State =
 	| { type: 'running'; since: number }
