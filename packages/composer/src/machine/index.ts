@@ -1,60 +1,35 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { objForearch } from '@/utils'
+import { isNever, objForearch } from '@/utils'
 
 type Typed = {
 	type: string
 }
 
-export function machine<
-	Event extends Typed,
-	State extends Typed,
-	Context,
-	Param = void,
->(o: MachineSpec<Event, State, Context, Param>) {
-	function withContext(s: State) {
-		return { state: s, context: o.states[s.type as State['type']].context(s) }
-	}
-	const machine = new Machine<Event, { state: State; context: Context }, Param>(
-		(p: Param) => withContext(o.init(p)),
-		({ state }) => state.type === 'final',
-	)
-	objForearch(o.states, (stateType, desc) => {
-		if (stateType === 'final') return
-		const { events } = desc
-		objForearch(events, (eventType, transition) => {
-			machine.addTransition(
-				eventType,
-				(event, { state, context }) => {
-					if (state.type !== stateType) return undefined
-					const nextSourceState = transition!(event as any, state, context)
-					if (nextSourceState === undefined) return undefined
-					return withContext(nextSourceState)
-				},
-				false,
-			)
-		})
-	})
-	return machine
-}
+// when event is just { type: string }, we can use string as shorthand
+export type Sendable<T extends Typed> =
+	| T
+	| (T extends { type: infer U } ? ({ type: U } extends T ? U : never) : never)
 
-export class Machine<Event extends Typed, State, Param = void> {
+export class Machine<
+	Event extends Typed,
+	State,
+	Param = void,
+	Final extends State = never,
+> {
 	init: (param: Param) => State
-	isFinal: (state: State) => boolean
+	isFinal: (state: State) => state is Final
 	transitions: Map<
 		Event['type'],
 		(event: Event, state: State) => State | undefined
 	> = new Map()
 	constructor(
 		init: (param: Param) => State,
-		isFinal: (state: State) => boolean,
+		isFinal: (state: State) => state is Final,
 	) {
 		this.init = init
 		this.isFinal = isFinal
 	}
-	send<K extends string = ''>(
-		event: Event | ({ type: K } extends Event ? K : never),
-		state: State,
-	) {
+	send(event: Sendable<Event>, state: State) {
 		event =
 			typeof event === 'string' ? ({ type: event } as unknown as Event) : event
 		return this._send(event, state) ?? state
@@ -103,17 +78,10 @@ export class Machine<Event extends Typed, State, Param = void> {
 	}
 }
 
-type Final = 'reject' | 'resolve'
-
-export type MachineSpec<
-	Event extends Typed,
-	State extends Typed,
-	Context,
-	Param,
-> = {
+type MachineSpec<Event extends Typed, State extends Typed, Context, Param> = {
 	init: (param: Param) => State
 	states: {
-		[StateType in Exclude<State['type'], Final>]: {
+		[StateType in Exclude<State['type'], 'final'>]: {
 			events: Partial<{
 				[EventType in Event['type']]: <
 					E extends Event & { type: EventType },
@@ -126,8 +94,104 @@ export type MachineSpec<
 			}>
 		}
 	} & {
-		[StateType in State['type']]: {
-			context: <S extends State & { type: StateType }>(state: S) => Context
+		[StateType in State['type']]: Context extends Record<string, unknown>
+			? {
+					context: <S extends State & { type: StateType }>(state: S) => Context
+				}
+			:
+					| {
+							context: <S extends State & { type: StateType }>(
+								state: S,
+							) => Context
+					  }
+					| Record<never, never>
+	}
+}
+
+type ComposedFinal<State extends Typed, Context> = State & {
+	type: 'final'
+} extends never
+	? never
+	: { state: State & { type: 'final' }; context: Context }
+
+export function machine<
+	Event extends Typed,
+	State extends Typed,
+	Context,
+	Param = void,
+>(o: MachineSpec<Event, State, Context, Param>) {
+	function isFinal(v: {
+		state: State
+		context: Context
+	}): v is ComposedFinal<State, Context> {
+		return v.state.type === 'final'
+	}
+	function withContext(s: State) {
+		const c = o.states[s.type as State['type']]
+		const context = 'context' in c ? c.context(s) : ({} as Context)
+		return { state: s, context }
+	}
+	const machine = new Machine<
+		Event,
+		{ state: State; context: Context },
+		Param,
+		ComposedFinal<State, Context>
+	>((p: Param) => withContext(o.init(p)), isFinal)
+	objForearch(o.states, (stateType, desc) => {
+		if (stateType === 'final') return
+		const { events } = desc
+		objForearch(events, (eventType, transition) => {
+			machine.addTransition(
+				eventType,
+				(event, { state, context }) => {
+					if (state.type !== stateType) return undefined
+					const nextSourceState = transition!(event as any, state, context)
+					if (nextSourceState === undefined) return undefined
+					return withContext(nextSourceState)
+				},
+				false,
+			)
+		})
+	})
+	return machine
+}
+
+type SingleState<Event extends Typed, State, Context, Param> = {
+	init: (param: Param) => State
+	events: {
+		[EventType in Event['type']]: <E extends Event & { type: EventType }>(
+			event: E,
+			state: State,
+			context: Context,
+		) => State | undefined
+	}
+} & (Context extends Record<string, unknown>
+	? { context: (state: State) => Context }
+	: { context: (state: State) => Context } | Record<never, never>)
+
+export function simpleMachine<Event extends Typed, State, Context, Param>(
+	o: SingleState<Event, State, Context, Param>,
+) {
+	function withContext(s: State) {
+		return {
+			state: s,
+			context: 'context' in o ? o.context(s) : ({} as Context),
 		}
 	}
+	const machine = new Machine<Event, { state: State; context: Context }, Param>(
+		(p: Param) => withContext(o.init(p)),
+		isNever,
+	)
+	objForearch(o.events, (eventType, transition) => {
+		machine.addTransition(
+			eventType,
+			(event, { state, context }) => {
+				const nextSourceState = transition!(event as any, state, context)
+				if (nextSourceState === undefined) return undefined
+				return withContext(nextSourceState)
+			},
+			false,
+		)
+	})
+	return machine
 }

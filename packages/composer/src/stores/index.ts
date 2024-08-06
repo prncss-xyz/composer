@@ -1,12 +1,21 @@
-import { id, Init, isFunction } from '../utils'
+import { fromInit, id, Init, isFunction } from '../utils'
 
 type Reducer<T, Acc> = (t: T, acc: Acc) => Acc | undefined
 
-export class Subcribable<Acc> {
+export class Subcribable<Acc, T> {
 	protected acc: Acc
+	private reducer: Reducer<T, Acc>
+	// TODO: WeakSet
 	private subscribers: Set<(t: Acc) => void> = new Set()
-	constructor(init: Acc) {
+	constructor(init: Acc, reducer: Reducer<T, Acc>) {
 		this.acc = init
+		this.reducer = reducer
+	}
+	put(v: T) {
+		const next = this.reducer(v, this.acc)
+		if (next === undefined || next === this.acc) return
+		this.acc = next
+		this.notify()
 	}
 	peek() {
 		return this.acc
@@ -24,50 +33,27 @@ export class Subcribable<Acc> {
 	}
 }
 
-export class ReducerStore<T, Acc, Param> extends Subcribable<Acc> {
-	private reducer: Reducer<T, Acc>
+export class ReducerStore<
+	T,
+	Acc,
+	Param,
+	Final extends Acc = never,
+> extends Subcribable<Acc, T> {
+	public isFinal: (acc: Acc) => acc is Final
 	constructor(
 		reducer: Reducer<T, Acc>,
 		initalArg: Param,
 		init: (p: Param) => Acc,
+		isFinal: (acc: Acc) => acc is Final,
 	) {
-		super(init(initalArg))
-		this.reducer = reducer
-	}
-	put(v: T) {
-		const next = this.reducer(v, this.acc)
-		if (next === undefined || next === this.acc) return
-		this.acc = next
-		this.notify()
+		super(init(initalArg), reducer)
+		this.isFinal = isFinal
 	}
 }
 
-export class DerivedStore<T, Acc> extends Subcribable<T> {
-	source: Subcribable<Acc>
-	select: (t: Acc) => T
-	areEqual: (value1: unknown, value2: unknown) => boolean
-	constructor(
-		source: Subcribable<Acc>,
-		select: (t: Acc) => T,
-		areEqual = Object.is,
-	) {
-		super(select(source.peek()))
-		this.source = source
-		this.select = select
-		this.areEqual = areEqual
-		source.subscribe((acc) => {
-			const next = select(acc)
-			if (areEqual(this.acc, next)) return
-			this.acc = next
-			this.notify()
-		})
-	}
-}
-
-export class StateStore<T> extends ReducerStore<T, T, undefined> {
+export class StateStore<T> extends Subcribable<T, T> {
 	constructor(init: Init<T>, reducer: Reducer<T, T> = id) {
-		if (isFunction(init)) super(reducer, undefined, init)
-		else super(reducer, undefined, () => init)
+		super(fromInit(init), reducer)
 	}
 	modify(f: (t: T) => T) {
 		this.put(f(this.acc))

@@ -5,6 +5,10 @@ export function isFunction<T>(x: T): x is T & ((...args: any[]) => any) {
 	return typeof x === 'function'
 }
 
+export function isNever(_v: unknown): _v is never {
+	return false
+}
+
 export function id<T>(t: T) {
 	return t
 }

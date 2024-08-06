@@ -3,21 +3,26 @@ import { useCallback, useRef, useSyncExternalStore } from 'react'
 
 import { Machine } from '../../composer/dist/machine'
 import { ReducerStore } from '../../composer/dist/stores'
-import { isFunction } from '../../composer/dist/utils'
-
-// TODO: string message
+import { fromInit, Init } from '../../composer/dist/utils'
 
 type Typed = {
 	type: string
 }
 
-export function createMachine<State, Event extends Typed, Param>(
-	machine: Machine<Event, State, Param>,
-	param: Param,
-) {
+export function createMachine<
+	State,
+	Event extends Typed,
+	Param,
+	Final extends State = never,
+>(machine: Machine<Event, State, Param, Final>, param: Param) {
 	const reducer = machine.send.bind(machine)
 	const init = machine.init.bind(machine)
-	return new ReducerStore<Event, State, Param>(reducer, param, init)
+	return new ReducerStore<Event, State, Param, Final>(
+		reducer,
+		param,
+		init,
+		machine.isFinal,
+	)
 }
 
 export function machineHooks<Event extends Typed, State, Context, Param>(
@@ -70,15 +75,11 @@ export function useReducerSelect<T, Acc, Param, U>(
 
 export function useReducerSend<T, Acc, Param>(
 	store: ReducerStore<T, Acc, Param>,
-	event: T | (() => T),
+	event: Init<T>,
 ) {
 	return useCallback(() => {
-		store.put(isFunction(event) ? event() : event)
+		store.put(fromInit(event))
 	}, [event, store])
-}
-
-export function useMachineFinal() {
-	// TODO:
 }
 
 export const useMachine = {

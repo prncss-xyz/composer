@@ -1,9 +1,9 @@
-import { Subcribable } from '../../composer/dist/stores'
+import { StateStore } from '../../composer/dist/stores'
 import { useSyncSelect } from './machine'
 
 const period = 100
 
-class Clock extends Subcribable<number> {
+class Clock extends StateStore<number> {
 	constructor() {
 		super(0)
 		setInterval(() => {
