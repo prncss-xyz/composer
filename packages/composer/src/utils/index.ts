@@ -9,6 +9,10 @@ export function isNever(_v: unknown): _v is never {
 	return false
 }
 
+export function apply<P, Q>(f: (p: P) => Q, p: P) {
+	return f(p)
+}
+
 export function id<T>(t: T) {
 	return t
 }

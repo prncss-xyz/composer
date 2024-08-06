@@ -1,5 +1,6 @@
 /* eslint-disable */
 // https://github.com/gcanti/fp-ts/blob/5469a48ff01c1db86b3dd3d1a67ca700e8dd0c08/src/function.ts#L438
+// however, we go with ramda terminology, inversing the meaing of flow and pipe
 /**
  * Pipes the value of an expression into a pipeline of functions.
  *

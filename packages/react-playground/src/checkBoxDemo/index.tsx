@@ -1,10 +1,10 @@
 import { Json } from '@/json'
+import { createAtom } from '@/lib/atoms'
 import { useActiveFocus, useFocus } from '@/lib/foci'
 import { Dispatch, SetStateAction, useCallback, useMemo } from 'react'
 
 import { eq, filter, includes, prop } from '../../../composer/dist/optics'
 import { flow } from '../../../composer/dist/utils'
-import { createAtom } from '@/lib/atoms'
 
 function isVoyel(s: string) {
 	return 'aeiouy'.includes(s)
@@ -17,17 +17,10 @@ type State = {
 }
 const atom = createAtom<State>({ fields: { contents: [] } })
 
-// TODO: pipe
-/* const allItems = flow(eq<State>(), prop('fields'), prop('contents')) */
-
-const voyelsItems = flow(
-	eq<State>(),
-	prop('fields'),
-	prop('contents'),
-	filter(isVoyel),
-)
-const getItem = (s: string) =>
-	flow(eq<State>(), prop('fields'), prop('contents'), includes(s))
+const items = flow(eq<State>(), prop('fields'), prop('contents'))
+const voyelsItems = filter(isVoyel)(items)
+/* const voyelsItems = flow(items, filter(isVoyel)) */
+const getItem = (s: string) => includes(s)(items)
 
 const toggle = (v: boolean) => !v
 

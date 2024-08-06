@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { fromInit, id, Init, isFunction, isNever, Monoid } from '../utils'
+import { apply, fromInit, id, Init, isFunction, isNever, Monoid } from '../utils'
 
 function cmp<P, Q, R>(f: (p: P) => Q, g: (q: Q) => R): (p: P) => R {
 	if (f === id) return g as unknown as (p: P) => R
@@ -27,10 +27,6 @@ function forbidden<T, U>(_: T, _u: U): U {
 
 function notImplemented(): any {
 	throw new Error('not implemented')
-}
-
-function apply<P, Q>(f: (p: P) => Q, p: P) {
-	return f(p)
 }
 
 function inert<T, U>(_: T, u: U) {
